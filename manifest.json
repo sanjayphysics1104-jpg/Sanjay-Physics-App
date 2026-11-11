@@ -1,0 +1,15 @@
+{
+  "name": "Sanjay Singh Physics",
+  "short_name": "Sanjay Physics",
+  "description": "Physics lectures, notes, question banks and quizzes for Classes 9–12 and NEET/JEE.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#051d2d",
+  "theme_color": "#072b42",
+  "icons": [
+    {"src":"assets/reference-logo-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/reference-logo-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

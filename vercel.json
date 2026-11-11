@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "functions": {
+    "api/physics-assistant.js": {"maxDuration": 60},
+    "api/sanjay-physics-assistant.js": {"maxDuration": 60},
+    "api/health.js": {"maxDuration": 10},
+    "api/admin-session.js": {"maxDuration": 10},
+    "api/questions.js": {"maxDuration": 10}
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"}
+      ]
+    }
+  ]
+}

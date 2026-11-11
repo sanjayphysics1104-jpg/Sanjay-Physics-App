@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#072b42">
+  <meta name="description" content="Sanjay Singh Physics — video lectures, notes, question banks and interactive quizzes for Classes 9–12 and NEET/JEE.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanjay Physics">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/reference-sanjay-physics-logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/reference-logo-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- KaTeX styles (the font files are resolved from this versioned CDN path). -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css">
+  <link rel="stylesheet" href="style.css?v=unified-scroll-ai-stability-20261109-4">
+  <title>Sanjay Singh Physics</title>
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="app-header">
+    <div class="header-inner">
+      <a class="brand" href="#home" aria-label="Sanjay Singh Physics home">
+        <img class="brand-logo reference-logo" src="assets/reference-sanjay-physics-logo.png" alt="Educational Desk Sanjay Physics" width="287" height="146">
+      </a>
+      <div class="header-library-tools" role="search" aria-label="Search and filter PDF Library">
+        <label class="header-search-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+          <input id="librarySearch" type="search" placeholder="Search notes, chapters…" aria-label="Search notes and chapters">
+        </label>
+        <button class="ai-launcher" id="aiLauncher" type="button" aria-controls="aiPanel" aria-expanded="false">
+          <span class="ai-launcher-icon" aria-hidden="true">✦</span>
+          <span class="ai-launcher-copy"><strong>AI Physics Assistant</strong></span>
+          <span class="ai-unread hidden" id="aiUnread" aria-label="New reply"></span>
+        </button>
+      </div>
+      <div class="header-actions">
+        <button class="board-header-btn" id="boardQuestionsBtn" type="button" aria-controls="boardQuestionsPage">
+          <span class="board-header-icon" aria-hidden="true">CBSE</span>
+          <span>Board Questions</span>
+        </button>
+        <button class="icon-btn" id="searchBtn" aria-label="Search library">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        </button>
+        <button class="icon-btn notification-btn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
+          <span></span>
+        </button>
+        <button class="admin-trigger" id="adminLoginBtn" type="button">
+          <span class="avatar-icon">SS</span><span id="adminButtonText">Admin Login</span>
+        </button>
+        <button class="install-btn hidden" id="installBtn" type="button">Install App</button>
+      </div>
+    </div>
+  </header>
+  <select id="pdfChapterFilter" aria-label="Filter PDFs by chapter" hidden><option value="all">All chapters</option></select>
+
+  <nav class="class-nav" aria-label="Class and examination categories">
+    <div class="class-tabs" id="classTabs" role="tablist">
+      <div class="nav-branch expanded" data-nav-branch="Class 9th">
+        <button class="class-tab active" data-class="Class 9th" role="tab" aria-selected="true" aria-expanded="true" aria-controls="navClass9">Class 9th<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navClass9" aria-label="Class 9th resources"></div>
+      </div>
+      <div class="nav-branch" data-nav-branch="Class 10th">
+        <button class="class-tab" data-class="Class 10th" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navClass10">Class 10th<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navClass10" aria-label="Class 10th resources"></div>
+      </div>
+      <div class="nav-branch" data-nav-branch="Class 11th">
+        <button class="class-tab" data-class="Class 11th" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navClass11">Class 11th<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navClass11" aria-label="Class 11th resources"></div>
+      </div>
+      <div class="nav-branch" data-nav-branch="Class 12th">
+        <button class="class-tab" data-class="Class 12th" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navClass12">Class 12th<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navClass12" aria-label="Class 12th resources"></div>
+      </div>
+      <div class="nav-branch" data-nav-branch="NEET / JEE">
+        <button class="class-tab" data-class="NEET / JEE" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navEntrance">NEET / JEE<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navEntrance" aria-label="NEET and JEE resources"></div>
+      </div>
+      <div class="nav-branch" data-nav-branch="Other Subjects">
+        <button class="class-tab" data-class="Other Subjects" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navOther">Other Subjects<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navOther" aria-label="Other subject resources"></div>
+      </div>
+      <div class="nav-branch nav-board-branch" data-nav-branch="CBSE Board">
+        <button class="class-tab board-nav-tab" type="button" data-board-nav aria-expanded="false" aria-controls="navBoard">CBSE Question Bank<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navBoard" aria-label="CBSE board question resources">
+          <button type="button" class="nav-subleg" data-board-view="library"><span aria-hidden="true">▤</span><span><strong>Question PDFs</strong><small>Chapter-wise Class 12 files</small></span></button>
+          <button type="button" class="nav-subleg" data-board-view="search"><span aria-hidden="true">⌕</span><span><strong>Chapter Search</strong><small>Find a board chapter</small></span></button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="assistant-strip shell" id="aiAssistantMount" aria-label="AI Physics Assistant"></section>
+
+  <main id="home">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><span></span> Learn physics with clarity</div>
+        <p>Structured lectures, crisp notes, exam-ready question banks and quizzes - everything for <strong id="activeClassLabel">Class 9th</strong> in one place.</p>
+        <div class="hero-actions">
+          <a href="#videos" class="primary-btn">Start learning <span>→</span></a>
+          <button class="secondary-btn" id="continueBtn" type="button">▶ Continue lesson</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="quick-stats shell" aria-label="Learning statistics">
+      <div><span class="stat-icon video-icon">▶</span><p><b id="videoCount">0</b><small>Video lessons</small></p></div>
+      <div><span class="stat-icon pdf-icon">▤</span><p><b id="pdfCount">0</b><small>Study notes</small></p></div>
+      <div><span class="stat-icon bank-icon">?</span><p><b id="questionCount">0</b><small>Practice questions</small></p></div>
+      <div><span class="stat-icon quiz-icon">★</span><p><b id="quizCount">0</b><small>Quiz challenges</small></p></div>
+    </section>
+
+    <section class="content-section surface-section learning-section" id="videos">
+      <div class="shell learning-panel-shell">
+        <div class="section-heading">
+          <div><span class="section-kicker">WATCH & UNDERSTAND</span><h2>Video Lectures</h2><p>Concept-first lessons, chapter by chapter.</p></div>
+          <div class="section-actions"><button class="text-btn admin-only" data-open-admin="video">+ Add lecture</button><button class="section-close" type="button" data-close-section="videos" aria-label="Close Video Lectures" title="Close Video Lectures">×</button></div>
+        </div>
+        <div class="card-grid video-grid learning-scroll" id="videoGrid" tabindex="0" aria-label="Scrollable video lectures"></div>
+      </div>
+    </section>
+
+    <section class="content-section surface-section learning-section" id="pdfs">
+      <div class="shell learning-panel-shell">
+        <div class="section-heading">
+          <div><span class="section-kicker">READ & REVISE</span><h2>PDF Library</h2><p>Notes, formula sheets and chapter modules.</p></div>
+          <div class="section-actions"><button class="text-btn admin-only" data-open-admin="pdf">+ Add PDF</button><button class="section-close" type="button" data-close-section="pdfs" aria-label="Close PDF Library" title="Close PDF Library">×</button></div>
+        </div>
+        <div class="card-grid pdf-grid learning-scroll" id="pdfGrid" tabindex="0" aria-label="Scrollable PDF Library"></div>
+      </div>
+    </section>
+
+    <section class="content-section surface-section learning-section" id="question-bank">
+      <div class="shell learning-panel-shell">
+        <div class="section-heading">
+          <div><span class="section-kicker">PRACTICE & PERFECT</span><h2>Question Bank & Exam Hub</h2><p>Curated problems with clear, stepwise solutions.</p></div>
+          <div class="section-actions"><button class="text-btn admin-only" data-open-admin="question">+ Add question set</button><button class="section-close" type="button" data-close-section="question-bank" aria-label="Close Question Bank" title="Close Question Bank">×</button></div>
+        </div>
+        <div class="bank-layout">
+          <div class="bank-list learning-scroll" id="questionBankGrid" tabindex="0" aria-label="Scrollable question bank"></div>
+          <aside class="exam-card">
+            <span class="exam-badge">EXAM MODE</span>
+            <div class="exam-art">π</div>
+            <h3>Ready for a challenge?</h3>
+            <p>Take a timed mixed-concept test and see where you stand.</p>
+            <button class="primary-btn full" id="startMixedQuiz">Start quiz <span>→</span></button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section surface-section quiz-section learning-section" id="quiz">
+      <div class="shell learning-panel-shell">
+        <button class="section-close quiz-section-close" type="button" data-close-section="quiz" aria-label="Close Online Quiz" title="Close Online Quiz">×</button>
+        <div class="quiz-intro" id="quizIntro">
+          <span class="section-kicker">TEST YOURSELF</span>
+          <h2>Online Quiz</h2>
+          <p>Instant feedback, explanations and a final score to help you improve.</p>
+          <button class="primary-btn" id="startQuizBtn">Start <span id="quizClassName">Class 9th</span> quiz <span>→</span></button>
+        </div>
+        <div class="quiz-player hidden" id="quizPlayer" aria-live="polite">
+          <div class="quiz-topline"><button class="back-btn" id="exitQuizBtn">← Exit</button><span id="quizProgressText">Question 1 of 3</span><span class="score-pill">Score <b id="liveScore">0</b></span></div>
+          <div class="progress-track"><span id="quizProgressBar"></span></div>
+          <div id="quizQuestionArea"></div>
+        </div>
+        <div class="score-card hidden" id="scoreCard"></div>
+      </div>
+    </section>
+  </main>
+
+  <main class="board-page hidden" id="boardQuestionsPage">
+    <section class="content-section surface-section board-library" aria-labelledby="boardLibraryTitle">
+      <div class="shell">
+        <div class="section-heading board-page-heading">
+          <div><span class="section-kicker">CHAPTER-WISE PRACTICE</span><h2 id="boardLibraryTitle">CBSE Question Banks</h2><p>Select a chapter to open its previous-year questions and solutions.</p></div>
+          <div class="board-page-actions">
+            <span class="board-available-count"><strong id="boardAvailableCount">0</strong> chapters available</span>
+            <button class="text-btn admin-only" type="button" data-open-admin="board">Manage PDFs</button>
+            <button class="board-page-close" id="boardBackBtn" type="button" aria-label="Close CBSE Board Questions" title="Close CBSE Board Questions">×</button>
+          </div>
+        </div>
+        <div class="library-toolbar board-library-toolbar">
+          <label class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input id="boardLibrarySearch" type="search" placeholder="Search CBSE chapters…"></label>
+          <select id="boardChapterFilter" aria-label="Filter CBSE question banks by chapter"><option value="all">All chapters</option></select>
+        </div>
+        <div class="card-grid pdf-grid board-pdf-grid learning-scroll" id="boardChapterList" tabindex="0" aria-label="Scrollable CBSE Question Bank chapters"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <a class="brand compact" href="#home"><img class="brand-logo reference-logo" src="assets/reference-sanjay-physics-logo.png" alt="Educational Desk Sanjay Physics" width="287" height="146"></a>
+      <p>Understand deeply. Perform confidently.</p>
+      <div><a href="#videos">Lectures</a><a href="#pdfs">Library</a><a href="#quiz">Quiz</a></div>
+      <small>© <span id="year"></span> Sanjay Singh Physics</small>
+    </div>
+  </footer>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <a href="#home" class="active"><span>⌂</span>Home</a><a href="#videos"><span>▶</span>Videos</a><a href="#pdfs"><span>▤</span>Library</a><a href="#quiz"><span>★</span>Quiz</a>
+  </nav>
+
+  <div class="modal" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel admin-modal-panel">
+      <button class="close-btn" data-close-modal aria-label="Close">×</button>
+      <div id="loginView">
+        <span class="modal-icon">⌾</span><h2 id="adminModalTitle">Admin access</h2>
+        <p id="loginHelp">Enter your admin PIN to manage learning content.</p>
+        <form id="loginForm">
+          <label>Admin PIN
+            <span class="password-field">
+              <input id="adminPin" type="password" inputmode="numeric" minlength="6" autocomplete="current-password" placeholder="Minimum 6 digits" required>
+              <button class="password-toggle" id="passwordToggle" type="button" aria-label="Show admin PIN" aria-pressed="false" title="Show PIN">
+                <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg>
+                <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.2 2.8M6.1 6.1C3.8 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-1"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+              </button>
+            </span>
+          </label>
+          <p class="form-error" id="loginError"></p>
+          <button class="primary-btn full" type="submit" id="loginSubmit">Unlock dashboard</button>
+        </form>
+      </div>
+      <div id="adminDashboard" class="hidden">
+        <div class="admin-title"><div><span class="section-kicker">ADMIN CONTROL</span><h2>Content manager</h2></div><button class="danger-link" id="logoutBtn">Log out</button></div>
+        <div class="admin-tabs" role="tablist">
+          <button class="active" data-admin-tab="video">Video</button><button data-admin-tab="pdf">PDF</button><button data-admin-tab="question">Question bank</button><button data-admin-tab="quiz">Quiz</button><button data-admin-tab="board">CBSE Board</button>
+        </div>
+        <form class="admin-form" id="videoForm" data-admin-form="video">
+          <div class="form-row"><label>Category / Class<select name="className" class="class-select" required></select></label><label>Chapter / Subject<input name="chapter" required placeholder="e.g. Motion or Python Programming"></label></div>
+          <label>Lecture title<input name="title" required placeholder="Enter lecture title"></label>
+          <label>YouTube or video URL<input name="url" type="url" required placeholder="https://youtube.com/watch?v=…"></label>
+          <button class="primary-btn" type="submit">Add lecture</button>
+        </form>
+        <form class="admin-form hidden" id="pdfForm" data-admin-form="pdf">
+          <div class="form-row"><label>Category / Class<select name="className" class="class-select" required></select></label><label>Chapter / Subject<input name="chapter" list="pdfChapterSuggestions" required placeholder="Type or select a chapter"></label></div>
+          <datalist id="pdfChapterSuggestions"></datalist>
+          <label>Document title<input name="title" required placeholder="Enter PDF title"></label>
+          <label>PDF URL<input name="url" type="url" placeholder="https://example.com/notes.pdf"></label>
+          <label class="upload-drop">Or choose one or more PDFs (max 40 MB each)<input name="file" type="file" accept="application/pdf" multiple data-max-bytes="41943040"><span>Choose PDF files</span></label>
+          <label>Page count<input name="pages" type="number" min="1" value="128"></label>
+          <button class="primary-btn" type="submit">Add PDF</button>
+        </form>
+        <form class="admin-form hidden" id="questionForm" data-admin-form="question">
+          <div class="form-row"><label>Category / Class<select name="className" class="class-select" required></select></label><label>Chapter / Subject<input name="chapter" required></label></div>
+          <label>Set title<input name="title" required></label><label>Number of questions<input name="count" type="number" min="1" required value="25"></label>
+          <label>Solution / resource URL<input name="url" type="url" placeholder="https://…"></label>
+          <label class="upload-drop">Or choose a PDF (max 40 MB)<input name="file" type="file" accept="application/pdf" data-max-bytes="41943040"><span>Choose PDF file</span></label>
+          <button class="primary-btn" type="submit">Add question set</button>
+        </form>
+        <form class="admin-form hidden" id="quizForm" data-admin-form="quiz">
+          <input type="hidden" name="editId">
+          <div class="form-row"><label>Category / Class<select name="className" class="class-select" required></select></label><label>Chapter / Subject<input name="chapter" required></label></div>
+          <label>Question<input name="question" required></label>
+          <div class="form-row"><label>Option A<input name="a" required></label><label>Option B<input name="b" required></label></div>
+          <div class="form-row"><label>Option C<input name="c" required></label><label>Option D<input name="d" required></label></div>
+          <label>Correct option<select name="answer" required><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label>
+          <label>Explanation<textarea name="explanation" required></textarea></label>
+          <button class="primary-btn" id="quizSubmitBtn" type="submit">Add quiz question</button>
+          <div class="quiz-admin-list" id="quizAdminList"></div>
+        </form>
+        <form class="admin-form hidden board-admin" id="boardForm" data-admin-form="board">
+          <div class="board-admin-intro"><strong>Class 12 CBSE Board Questions</strong><p>Add one or more separate PDFs to each chapter. Every file stays independent and appears as a tab in the reader.</p></div>
+          <label>Chapter<select name="chapter" id="boardAdminChapter" required></select></label>
+          <label>Document label<input name="title" placeholder="e.g. Main Board Questions"></label>
+          <label>PDF / resource URL<input name="url" type="url" placeholder="https://example.com/cbse-questions.pdf"></label>
+          <label class="upload-drop">Or choose one or more PDFs (max 40 MB each)<input name="file" type="file" accept="application/pdf" multiple data-max-bytes="41943040"><span>Choose PDF files</span></label>
+          <button class="primary-btn" type="submit">Add PDF to chapter</button>
+          <div class="board-admin-list" id="boardAdminList"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="deleteQuestionModal" role="alertdialog" aria-modal="true" aria-labelledby="deleteQuestionTitle" aria-describedby="deleteQuestionMessage" aria-hidden="true">
+    <div class="modal-backdrop" data-cancel-delete></div>
+    <div class="modal-panel confirm-delete-panel">
+      <span class="modal-icon danger-modal-icon">!</span>
+      <h2 id="deleteQuestionTitle">Delete question?</h2>
+      <p id="deleteQuestionMessage">Are you sure you want to delete this question? This cannot be undone.</p>
+      <div class="confirm-delete-actions">
+        <button class="secondary-btn" id="cancelDeleteBtn" type="button" data-cancel-delete>Cancel</button>
+        <button class="confirm-delete-btn" id="confirmDeleteBtn" type="button">Delete question</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div><div class="modal-panel media-panel"><button class="close-btn" data-close-modal>×</button><div class="video-frame" id="videoFrame"></div><h2 id="videoModalTitle"></h2><p id="videoModalMeta"></p></div>
+  </div>
+
+  <div class="modal reader-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="readerTitle" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="reader-shell">
+      <div class="reader-header">
+        <div class="reader-heading"><small id="readerClass"></small><h2 id="readerTitle">Document reader</h2></div>
+        <div class="reader-header-actions">
+          <button class="reader-fullscreen-btn" id="readerFullscreenBtn" type="button" aria-label="Enter full screen" aria-pressed="false" title="Enter full screen">
+            <svg class="fullscreen-enter-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+            <svg class="fullscreen-exit-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8H3V3M16 8h5V3M8 16H3v5M16 16h5v5"/></svg>
+          </button>
+          <button class="close-btn" type="button" data-close-modal aria-label="Close PDF reader">×</button>
+        </div>
+      </div>
+      <div class="reader-document-tabs" id="readerDocumentTabs" role="tablist" aria-label="Chapter PDF documents"></div>
+      <div class="book-stage"><div class="book-page" id="bookPage"><iframe id="pdfViewer" title="PDF document"></iframe><div class="reader-placeholder" id="readerPlaceholder"><span>▤</span><h3>Preview unavailable</h3><p>Add a valid PDF URL or upload a file to read it here.</p></div></div></div>
+      <div class="reader-controls"><button id="prevPage">← Previous</button><label>Page <input id="pageNumber" type="number" min="1" value="1"> of <span id="totalPages">1</span></label><button id="nextPage">Next →</button></div>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <section class="ai-assistant" id="aiAssistant" aria-label="AI Physics Assistant">
+    <button class="ai-backdrop hidden" id="aiBackdrop" type="button" aria-label="Close AI Physics Assistant"></button>
+    <div class="ai-panel hidden" id="aiPanel" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+      <header class="ai-header">
+        <div class="ai-avatar" aria-hidden="true">AI</div>
+        <div class="ai-heading">
+          <strong id="aiTitle">AI Physics Assistant</strong>
+          <span id="aiStatus" data-state="working"><i></i> Connecting to AI…</span>
+        </div>
+        <button class="ai-header-btn" id="aiMinimize" type="button" aria-label="Collapse assistant" title="Collapse">—</button>
+        <button class="ai-header-btn" id="aiClose" type="button" aria-label="Close assistant" title="Close">×</button>
+      </header>
+
+      <div class="ai-body">
+        <div class="ai-context" aria-label="Study context">
+          <label>Class
+            <select id="aiClass" aria-label="Choose class"></select>
+          </label>
+          <label id="aiChapterField">Chapter
+            <input id="aiChapter" list="aiChapterList" maxlength="100" autocomplete="off" placeholder="Choose or type chapter" aria-label="Choose or type chapter">
+            <datalist id="aiChapterList"></datalist>
+          </label>
+          <button class="ai-clear" id="aiClear" type="button" title="Clear this chat">Clear</button>
+        </div>
+
+        <div class="ai-messages" id="aiMessages" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div class="ai-input-dock">
+          <div class="ai-quick-actions" id="aiQuickActions" aria-label="Quick actions">
+            <button type="button" data-ai-action="Explain this concept">Explain concept</button>
+            <button type="button" data-ai-action="Solve this numerical step by step">Solve numerical</button>
+            <button type="button" data-ai-action="Give me the key formulas">Give formulas</button>
+            <button type="button" data-ai-action="Give me a hint for this MCQ without revealing the answer">MCQ hint</button>
+          </div>
+
+          <form class="ai-composer" id="aiForm">
+            <label class="sr-only" for="aiInput">Ask a physics question</label>
+            <textarea id="aiInput" rows="1" maxlength="3000" placeholder="Ask a physics doubt…" required></textarea>
+            <button class="ai-mic" id="aiMic" type="button" aria-label="Start voice input" aria-pressed="false" title="Ask using your microphone">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"></path></svg>
+            </button>
+            <button id="aiSend" type="submit" aria-label="Send question" title="Send question">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-6 16-2.5-6.5L4 12Z"></path><path d="m11.5 13.5 4-4"></path></svg>
+            </button>
+          </form>
+          <p class="ai-disclaimer">AI can make mistakes. Check important calculations with your notes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rich AI response pipeline: Markdown -> sanitized HTML -> KaTeX. -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@16.4.1/lib/marked.umd.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.7/dist/purify.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/contrib/auto-render.min.js" defer></script>
+  <script src="api-config.js" defer></script>
+  <script src="script.js?v=assistant-board-recovery-20261109-1" defer></script>
+  <script src="ai-assistant.js?v=persistent-drawer-20261109-4" defer></script>
+  <!-- Independent, fully offline Sanjay Physics Assistant. -->
+  <script src="Sanjay_Physics_Assistant/knowledge-base.js" defer></script>
+  <script src="Sanjay_Physics_Assistant/academic-db.js" defer></script>
+  <script src="Sanjay_Physics_Assistant/corpus-index.js?v=offline-corpus-20261111-3" defer></script>
+  <script src="Sanjay_Physics_Assistant/offline-engine.js?v=offline-corpus-20261111-3" defer></script>
+  <script src="Sanjay_Physics_Assistant/offline-ui.js?v=offline-corpus-20261111-3" defer></script>
+</body>
+</html>

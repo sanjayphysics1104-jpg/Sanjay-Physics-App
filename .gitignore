@@ -1,0 +1,27 @@
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*service-account*.json
+secrets/
+
+# Dependencies, build output, and local tooling
+node_modules/
+dist/
+build/
+coverage/
+.vercel/
+.cache/
+tmp/
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
