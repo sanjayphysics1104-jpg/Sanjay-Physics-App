@@ -21,6 +21,7 @@ test("startup data cloning works when Android does not provide structuredClone",
 test("service worker bypasses PDFs and byte ranges but handles navigations", async () => {
   const worker = read("sw.js");
   const listeners = {};
+  const deletedCaches = [];
   const cache = {
     addAll: async () => {},
     match: async () => undefined,
@@ -36,8 +37,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
     caches: {
       open: async () => cache,
       match: async () => undefined,
-      keys: async () => [],
-      delete: async () => true
+      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "unrelated-origin-cache"],
+      delete: async key => { deletedCaches.push(key); return true; }
     },
     self: {
       registration:{scope:"https://physics.example/"},
@@ -61,7 +62,13 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   const navigation = dispatchFetch({method:"GET",url:"https://physics.example/",headers:headers(false),mode:"navigate"});
   assert.equal(typeof navigation?.then, "function");
   assert.equal(await navigation, response);
-  assert.match(worker, /sanjay-physics-v62-native-install-flow/);
+  let activation;
+  listeners.activate({waitUntil(value){ activation = value; }});
+  await activation;
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow"]);
+  assert.match(worker, /v63-canonical-startup/);
+  assert.match(worker, /const OFFLINE_URL = "\/"/);
+  assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
   assert.match(worker, /Promise\.allSettled\(OFFLINE_CORPUS/);
   assert.match(worker, /clients\.claim\(\)/);
@@ -95,7 +102,7 @@ test("install control stays discoverable and provides platform-specific fallback
   const html = read("index.html");
   const script = read("script.js");
   const vercel = JSON.parse(read("vercel.json"));
-  assert.match(html, /class="install-btn" id="installBtn"/);
+  assert.match(html, /class="install-btn hidden" id="installBtn"/);
   assert.match(html, /id="installModal"/);
   assert.doesNotMatch(html, /id="installConfirmBtn"/);
   assert.match(html, /class="secondary-btn install-help-close"[^>]*>Close<\/button>/);
@@ -109,11 +116,15 @@ test("install control stays discoverable and provides platform-specific fallback
   assert.match(script, /register\("\/sw\.js",\{scope:"\/",updateViaCache:"none"\}\)/);
   assert.match(script, /installButton\.addEventListener\("click",requestInstall\)/);
   assert.match(script, /installButton\.textContent = deferredInstallPrompt \? "Install App" : "Install Help"/);
+  assert.match(script, /installHelpReady = !chromiumBrowser/);
+  assert.match(script, /setTimeout\(\(\)=>\{installHelpReady=true;syncInstallButton\(\);\},3000\)/);
   assert.match(script, /await promptEvent\.prompt\(\)/);
   assert.match(script, /await promptEvent\.userChoice/);
   const swHeaders = vercel.headers.find(rule => rule.source === "/sw.js")?.headers || [];
   assert.ok(swHeaders.some(header => header.key === "Service-Worker-Allowed" && header.value === "/"));
   assert.ok(swHeaders.some(header => header.key === "Cache-Control" && /no-cache/.test(header.value)));
+  const legacyRedirect = vercel.redirects.find(rule => rule.source === "/index.html");
+  assert.deepEqual(legacyRedirect, {source:"/index.html", destination:"/", permanent:false});
 });
 
 test("all preserved PDF files retain valid PDF signatures", () => {

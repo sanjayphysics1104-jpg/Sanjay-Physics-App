@@ -1105,8 +1105,10 @@ function initPwa() {
   const installButton = $("#installBtn");
   const standaloneQuery = window.matchMedia?.("(display-mode: standalone)");
   const isStandalone = () => Boolean(standaloneQuery?.matches || navigator.standalone === true);
+  const chromiumBrowser = /Chrome|Chromium|CriOS|Edg\//i.test(navigator.userAgent || "");
+  let installHelpReady = !chromiumBrowser;
   const syncInstallButton = () => {
-    installButton.classList.toggle("hidden", isStandalone());
+    installButton.classList.toggle("hidden", isStandalone() || (!deferredInstallPrompt && !installHelpReady));
     installButton.textContent = deferredInstallPrompt ? "Install App" : "Install Help";
     installButton.setAttribute("aria-label", deferredInstallPrompt ? "Install Sanjay Physics" : "Show installation instructions");
   };
@@ -1157,10 +1159,19 @@ function initPwa() {
   const secureForServiceWorker = location.protocol === "https:" || ["localhost","127.0.0.1"].includes(location.hostname);
   if("serviceWorker" in navigator && secureForServiceWorker) {
     navigator.serviceWorker.register("/sw.js",{scope:"/",updateViaCache:"none"})
-      .then(registration=>registration.update().catch(()=>{}))
+      .then(registration=>{
+        registration.waiting?.postMessage({type:"SKIP_WAITING"});
+        registration.addEventListener("updatefound",()=>registration.installing?.addEventListener("statechange",()=>{
+          if(registration.waiting) registration.waiting.postMessage({type:"SKIP_WAITING"});
+        }));
+        return registration.update().catch(()=>{});
+      })
       .catch(()=>toast("Offline installation could not be prepared. Reload the page and try again.",true));
   }
   window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;syncInstallButton();});
+  // Chromium only exposes a real Install action after beforeinstallprompt.
+  // If it never arrives, expose clearly-labelled browser instructions instead.
+  setTimeout(()=>{installHelpReady=true;syncInstallButton();},3000);
   installButton.addEventListener("click",requestInstall);
   window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;syncInstallButton();closeModal($("#installModal"));toast("Sanjay Physics installed successfully");});
 }
