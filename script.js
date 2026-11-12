@@ -15,7 +15,6 @@ const BOARD_PDF_DB_NAME = "ssp_cbse_board_pdf_files_v1";
 const BOARD_PDF_STORE_NAME = "boardPdfFiles";
 const QUESTION_BANK_PDF_DB_NAME = "ssp_question_bank_pdf_files_v1";
 const QUESTION_BANK_PDF_STORE_NAME = "questionBankPdfFiles";
-const BUNDLED_PDF_MEDIA_BASE = "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/";
 const cloneContentData = value => typeof structuredClone === "function"
   ? structuredClone(value)
   : JSON.parse(JSON.stringify(value));
@@ -591,8 +590,7 @@ function renderReaderDocumentTabs() {
 async function resolveReaderPdfUrl(pdf, collection) {
   const resolveBundledPdf = async source => {
     const resolved = new URL(source, document.baseURI);
-    if (!resolved.pathname.startsWith("/assets/pdfs/")) return resolved.href;
-    return `${BUNDLED_PDF_MEDIA_BASE}${resolved.pathname.slice(1)}${resolved.search}`;
+    return resolved.href;
   };
   if (!pdf.blobKey) {
     const source = pdf.url || pdf.fallbackUrl || "";

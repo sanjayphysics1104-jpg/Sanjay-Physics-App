@@ -37,7 +37,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
     caches: {
       open: async () => cache,
       match: async () => undefined,
-      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "unrelated-origin-cache"],
+      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "unrelated-origin-cache"],
       delete: async key => { deletedCaches.push(key); return true; }
     },
     self: {
@@ -65,8 +65,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   let activation;
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
-  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup"]);
-  assert.match(worker, /v64-pdfjs-viewer/);
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer"]);
+  assert.match(worker, /v65-same-origin-pdf/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -94,7 +94,6 @@ test("reader renders PDFs in-app on desktop and Android with real navigation, zo
   assert.match(script, /devicePixelRatio/);
   assert.match(script, /downloadCurrentPdf/);
   assert.doesNotMatch(script, /Mobile installed apps do not always include an embedded PDF viewer/);
-  assert.match(script, /media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main/);
   assert.match(script, /item\?\.blobKey\|\|item\?\.url\|\|item\?\.fallbackUrl\)openPdf\(item\.id\)/);
   assert.doesNotMatch(script, /else if\(item\?\.url\)window\.open/);
   assert.match(worker, /"\/vendor\/pdfjs\/pdf\.min\.mjs"/);
@@ -165,10 +164,10 @@ test("all preserved PDF files retain valid PDF signatures", () => {
   }
 });
 
-test("Vercel serves Git LFS PDFs through the materialized media endpoint", () => {
+test("Vercel proxies Git LFS PDFs through the app origin for PDF.js range loading", () => {
   const vercel = JSON.parse(read("vercel.json"));
-  const pdfRedirect = vercel.redirects?.find(rule => rule.source === "/assets/pdfs/:path*");
-  assert.ok(pdfRedirect, "bundled PDF redirect is missing");
-  assert.equal(pdfRedirect.permanent, false);
-  assert.match(pdfRedirect.destination, /^https:\/\/media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main\/assets\/pdfs\/:path\*$/);
+  const pdfRewrite = vercel.rewrites?.find(rule => rule.source === "/assets/pdfs/:path*");
+  assert.ok(pdfRewrite, "same-origin bundled PDF proxy is missing");
+  assert.match(pdfRewrite.destination, /^https:\/\/media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main\/assets\/pdfs\/:path\*$/);
+  assert.doesNotMatch(read("script.js"), /return `\$\{BUNDLED_PDF_MEDIA_BASE\}/);
 });

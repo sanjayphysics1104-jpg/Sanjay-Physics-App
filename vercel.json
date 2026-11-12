@@ -13,11 +13,12 @@
       "source": "/index.html",
       "destination": "/",
       "permanent": false
-    },
+    }
+  ],
+  "rewrites": [
     {
       "source": "/assets/pdfs/:path*",
-      "destination": "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/assets/pdfs/:path*",
-      "permanent": false
+      "destination": "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/assets/pdfs/:path*"
     }
   ],
   "headers": [
