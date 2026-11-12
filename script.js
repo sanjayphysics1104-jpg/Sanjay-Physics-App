@@ -705,10 +705,13 @@ async function loadReaderPdf(url, loadToken) {
   const pdfjsLib = await loadPdfJs();
   if (loadToken !== pdfLoadToken) return false;
   showReaderPlaceholder("Loading document…", "Preparing the in-app PDF viewer.");
-  // The production PDF media route is an external-origin Vercel proxy. Some
-  // Chromium/PDF.js combinations leave concurrent byte-range streams pending
-  // through that proxy, so use one deterministic response for document load.
-  const loadingTask = pdfjsLib.getDocument({url:url, isEvalSupported:false, disableRange:true, disableStream:true});
+  // Fetch through the app's media route, then transfer verified bytes to the
+  // worker. PDF.js URL transport can remain pending behind external proxies.
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`PDF request failed with ${response.status}`);
+  const documentBytes = new Uint8Array(await response.arrayBuffer());
+  if (loadToken !== pdfLoadToken) return false;
+  const loadingTask = pdfjsLib.getDocument({data:documentBytes, isEvalSupported:false});
   pdfLoadingTask = loadingTask;
   const loadedDocument = await loadingTask.promise;
   if (loadToken !== pdfLoadToken) {

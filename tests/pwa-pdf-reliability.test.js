@@ -37,7 +37,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
     caches: {
       open: async () => cache,
       match: async () => undefined,
-      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "unrelated-origin-cache"],
+      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "unrelated-origin-cache"],
       delete: async key => { deletedCaches.push(key); return true; }
     },
     self: {
@@ -65,8 +65,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   let activation;
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
-  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route"]);
-  assert.match(worker, /v67-pdf-single-response/);
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response"]);
+  assert.match(worker, /v68-pdf-byte-transfer/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -89,8 +89,8 @@ test("reader renders PDFs in-app on desktop and Android with real navigation, zo
   assert.match(html, /id="readerFallbackOpen"[^>]*target="_blank"[^>]*rel="noopener"/);
   assert.match(script, /import\("\/vendor\/pdfjs\/pdf\.min\.mjs"\)/);
   assert.match(script, /GlobalWorkerOptions\.workerSrc = "\/vendor\/pdfjs\/pdf\.worker\.min\.mjs"/);
-  assert.match(script, /getDocument\(\{url:/);
-  assert.match(script, /disableRange:true, disableStream:true/);
+  assert.match(script, /new Uint8Array\(await response\.arrayBuffer\(\)\)/);
+  assert.match(script, /getDocument\(\{data:documentBytes/);
   assert.match(script, /page\.render\(\{/);
   assert.match(script, /devicePixelRatio/);
   assert.match(script, /downloadCurrentPdf/);
