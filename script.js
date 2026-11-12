@@ -269,6 +269,7 @@ const DEFAULT_DATA = {
 
 let data = loadData();
 let activeClass = "Class 9th";
+let learningView = {view:"home", className:activeClass, target:""};
 let isAdmin = location.protocol === "file:" && sessionStorage.getItem(SESSION_KEY) === "true";
 let pendingDelete = null;
 let deferredInstallPrompt = null;
@@ -330,11 +331,13 @@ function filtered(collection) { return collection.filter(item => item.className 
 function renderAll() {
   renderVideos(); renderPdfs(); renderQuestionBanks(); renderQuizAdmin(); renderBoardQuestions(); renderBoardAdmin(); updateStats();
   renderNavigationLegs();
+  renderClassDashboard();
   $("#activeClassLabel").textContent = activeClass;
   $("#quizClassName").textContent = activeClass;
   document.body.classList.toggle("admin-mode", isAdmin);
   $$(".admin-only").forEach(el => el.style.display = isAdmin ? "" : "none");
   $("#adminButtonText").textContent = isAdmin ? "Admin Dashboard" : "Admin Login";
+  $("#headerLogoutBtn").classList.toggle("hidden", !isAdmin);
 }
 
 function boardQuestionsFor(chapter) {
@@ -485,6 +488,83 @@ const NAVIGATION_LEGS = [
   {target:"quiz", icon:"★", title:"Online Quiz", detail:className=>`${data.quizzes.filter(item=>item.className===className).length} challenges`}
 ];
 
+function renderClassDashboard() {
+  const title = $("#classDashboardTitle");
+  const grid = $("#classDashboardGrid");
+  if (!title || !grid) return;
+  title.textContent = `${activeClass} dashboard`;
+  grid.innerHTML = NAVIGATION_LEGS.map(leg => `
+    <button class="class-dashboard-card" type="button" data-learning-target="${leg.target}">
+      <span aria-hidden="true">${leg.icon}</span>
+      <strong>${leg.title}</strong>
+      <small>${leg.detail(activeClass)}</small>
+      <b aria-hidden="true">→</b>
+    </button>`).join("");
+}
+
+function learningHash(state) {
+  if (state.view === "home") return "#home";
+  const base = `#class/${encodeURIComponent(state.className)}`;
+  return state.view === "section" ? `${base}/${encodeURIComponent(state.target)}` : base;
+}
+
+function learningStateFromLocation() {
+  const match = location.hash.match(/^#class\/([^/]+)(?:\/([^/]+))?$/);
+  if (!match) return {view:"home", className:activeClass, target:""};
+  const className = decodeURIComponent(match[1]);
+  const target = match[2] ? decodeURIComponent(match[2]) : "";
+  if (!CLASSES.includes(className)) return {view:"home", className:activeClass, target:""};
+  if (target && !NAVIGATION_LEGS.some(leg => leg.target === target)) return {view:"dashboard", className, target:""};
+  return {view:target ? "section" : "dashboard", className, target};
+}
+
+function setLearningView(next, {historyMode="push", scroll=true} = {}) {
+  const view = ["home", "dashboard", "section"].includes(next.view) ? next.view : "home";
+  const className = CLASSES.includes(next.className) ? next.className : activeClass;
+  const target = view === "section" && NAVIGATION_LEGS.some(leg => leg.target === next.target) ? next.target : "";
+  learningView = {view, className, target};
+  if (!$("#boardQuestionsPage").classList.contains("hidden")) showBoardPage(false, false);
+  if (activeClass !== className) setActiveClass(className, false);
+  else renderClassDashboard();
+
+  document.body.classList.toggle("learning-dashboard-open", view === "dashboard");
+  document.body.classList.toggle("learning-section-open", view === "section");
+  $("#learningViewBar").classList.toggle("hidden", view === "home");
+  $("#classDashboard").classList.toggle("hidden", view !== "dashboard");
+  $$(".learning-section").forEach(section => {
+    const active = view === "section" && section.id === target;
+    section.classList.toggle("active-learning-section", active);
+    section.classList.toggle("hidden", view !== "home" && !active);
+  });
+  if (view !== "home") {
+    $("#learningViewClass").textContent = className;
+    $("#learningViewTitle").textContent = view === "dashboard" ? "Class dashboard" : NAVIGATION_LEGS.find(leg => leg.target === target)?.title || "Learning area";
+  }
+  $$(".mobile-nav a").forEach(link => {
+    const linkTarget = link.getAttribute("href")?.slice(1);
+    link.classList.toggle("active", view === "home" ? linkTarget === "home" : view === "section" && linkTarget === target);
+  });
+
+  if (historyMode !== "none") {
+    const state = {sspLearningState:learningView, sspCanGoBack:historyMode === "push"};
+    const current = history.state?.sspLearningState;
+    const same = current && current.view === view && current.className === className && current.target === target;
+    if (historyMode === "replace" || same) history.replaceState(state, "", learningHash(learningView));
+    else history.pushState(state, "", learningHash(learningView));
+  }
+  if (scroll) window.scrollTo({top:0, behavior:"auto"});
+}
+
+function openClassDashboard(className, options) {
+  setLearningView({view:"dashboard", className, target:""}, options);
+}
+
+function goBackFromLearningView() {
+  if (history.state?.sspCanGoBack) { history.back(); return; }
+  if (learningView.view === "section") openClassDashboard(activeClass, {historyMode:"replace"});
+  else setLearningView({view:"home", className:activeClass, target:""}, {historyMode:"replace"});
+}
+
 function renderNavigationLegs() {
   $$(".nav-branch[data-nav-branch]:not(.nav-board-branch)").forEach(branch => {
     const className = branch.dataset.navBranch;
@@ -517,15 +597,11 @@ function toggleNavigationBranch(tab) {
 }
 
 function navigateToLearningView(className, target) {
-  if (!$("#boardQuestionsPage").classList.contains("hidden")) showBoardPage(false, false);
-  setActiveClass(className);
-  const section = document.getElementById(target);
-  if (section) section.classList.remove("hidden");
+  setLearningView({view:"section", className, target});
   $$(".nav-subleg").forEach(button => button.classList.toggle("active", button.dataset.navClass === className && button.dataset.navTarget === target));
-  requestAnimationFrame(() => section?.scrollIntoView({behavior:"smooth", block:"start"}));
 }
 
-function setActiveClass(className) {
+function setActiveClass(className, announce = true) {
   activeClass = className;
   $$(".class-tab").forEach(tab => { const active = tab.dataset.class === className; tab.classList.toggle("active", active); tab.setAttribute("aria-selected", active); });
   $(".board-nav-tab")?.classList.remove("active");
@@ -535,7 +611,7 @@ function setActiveClass(className) {
   exitQuiz(); renderAll();
   $$(".nav-subleg").forEach(button => button.classList.remove("active"));
   window.dispatchEvent(new CustomEvent("sanjay:classchange", {detail: getSanjayPhysicsContext()}));
-  toast(`Showing ${className} content`);
+  if (announce) toast(`Showing ${className} content`);
 }
 
 function getSanjayPhysicsContext() {
@@ -791,6 +867,7 @@ async function openPdf(id) {
   const opened = await selectReaderDocument(id);
   if (opened) {
     openModal("pdfModal");
+    history.pushState({...history.state, sspOverlay:"pdf", sspCanGoBack:true}, "", location.href);
     requestAnimationFrame(()=>renderPdfPage());
   }
 }
@@ -893,6 +970,11 @@ function closeModal(modal) {
   }
 }
 
+function closePdfFromUser() {
+  if (history.state?.sspOverlay === "pdf") { history.back(); return; }
+  closeModal($("#pdfModal"));
+}
+
 async function hashPin(pin) {
   const bytes = new TextEncoder().encode(`sanjay-physics:${pin}`);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -943,7 +1025,32 @@ async function handleLogin(event) {
   $("#loginView").classList.add("hidden"); $("#adminDashboard").classList.remove("hidden"); renderAll(); toast(configuredHash ? "Admin dashboard unlocked" : "Admin PIN created successfully");
 }
 
-function logout() { isAdmin=false; sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(ADMIN_TOKEN_KEY); renderAll(); closeModal($("#adminModal")); toast("Admin session closed"); }
+function requestLogoutConfirmation() {
+  if (!isAdmin) { openAdmin(); return; }
+  $("#logoutError").textContent = "";
+  openModal("logoutConfirmModal");
+}
+
+function cancelLogout() { closeModal($("#logoutConfirmModal")); }
+
+function confirmLogout() {
+  const button = $("#confirmLogoutBtn");
+  button.disabled = true;
+  $("#logoutError").textContent = "";
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    if (sessionStorage.getItem(SESSION_KEY) || sessionStorage.getItem(ADMIN_TOKEN_KEY)) throw new Error("The browser did not clear the admin credentials.");
+    isAdmin = false;
+    renderAll();
+    closeModal($("#logoutConfirmModal"));
+    if ($("#adminModal").classList.contains("open")) closeModal($("#adminModal"));
+    openAdmin();
+    toast("Admin session closed securely");
+  } catch (error) {
+    $("#logoutError").textContent = error.message || "Logout could not be completed. Please try again.";
+  } finally { button.disabled = false; }
+}
 
 function setAdminTab(name) {
   $$("[data-admin-tab]").forEach(btn => btn.classList.toggle("active",btn.dataset.adminTab===name));
@@ -1116,7 +1223,7 @@ function showBoardPage(show, updateHash = true) {
   $(".board-nav-tab")?.classList.toggle("active", show);
   if (show) setExpandedNavigation("CBSE Board"); else setExpandedNavigation(activeClass);
   $$(".mobile-nav a").forEach(link => link.classList.toggle("active", !show && link.getAttribute("href") === "#home"));
-  if (updateHash) history.pushState(null, "", show ? "#cbse-board-questions" : "#home");
+  if (updateHash) history.pushState(show ? {sspBoard:true, sspCanGoBack:true} : {sspLearningState:{view:"home",className:activeClass,target:""},sspCanGoBack:true}, "", show ? "#cbse-board-questions" : "#home");
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
@@ -1198,6 +1305,17 @@ function initForms() {
   $("#quizForm").addEventListener("submit",e=>{e.preventDefault();addQuiz(e.currentTarget);});
 }
 
+function restoreNavigationState(event) {
+  if ($("#pdfModal").classList.contains("open")) closeModal($("#pdfModal"));
+  const state = event?.state || history.state;
+  if (state?.sspBoard || location.hash === "#cbse-board-questions") {
+    showBoardPage(true, false);
+    return;
+  }
+  if (!$("#boardQuestionsPage").classList.contains("hidden")) showBoardPage(false, false);
+  setLearningView(state?.sspLearningState || learningStateFromLocation(), {historyMode:"none"});
+}
+
 function initEvents() {
   $("#classTabs").addEventListener("click",e=>{
     const leg=e.target.closest("[data-nav-target]");
@@ -1206,13 +1324,17 @@ function initEvents() {
     if(boardLeg){showBoardPage(true);$$('.nav-subleg').forEach(button=>button.classList.toggle('active',button===boardLeg));requestAnimationFrame(()=>{$(".board-library")?.scrollIntoView({behavior:"smooth",block:"start"});if(boardLeg.dataset.boardView==="search")setTimeout(()=>$("#boardLibrarySearch")?.focus(),450);});return;}
     const boardTab=e.target.closest("[data-board-nav]");if(boardTab){const shouldExpand=toggleNavigationBranch(boardTab);if(shouldExpand)showBoardPage(true);return;}
     const tab=e.target.closest(".class-tab[data-class]");
-    if(tab){const shouldExpand=toggleNavigationBranch(tab);if(!shouldExpand)return;if(!$("#boardQuestionsPage").classList.contains("hidden"))showBoardPage(false,false);setActiveClass(tab.dataset.class);}
+    if(tab){openClassDashboard(tab.dataset.class);}
   });
   $("#librarySearch").addEventListener("input",renderPdfs); $("#pdfChapterFilter").addEventListener("change",renderPdfs);
   $("#boardLibrarySearch")?.addEventListener("input",renderBoardQuestions); $("#boardChapterFilter")?.addEventListener("change",renderBoardQuestions);
   document.addEventListener("click",e=>{
+    const dashboardTarget=e.target.closest("[data-learning-target]");
+    if(dashboardTarget){navigateToLearningView(activeClass,dashboardTarget.dataset.learningTarget);return;}
+    const learningLink=e.target.closest('a[href="#home"],a[href="#videos"],a[href="#pdfs"],a[href="#question-bank"],a[href="#quiz"]');
+    if(learningLink){e.preventDefault();const target=learningLink.getAttribute("href").slice(1);if(target==="home")setLearningView({view:"home",className:activeClass,target:""});else navigateToLearningView(activeClass,target);return;}
     const sectionClose=e.target.closest("[data-close-section]");
-    if(sectionClose){e.preventDefault();e.stopPropagation();const section=document.getElementById(sectionClose.dataset.closeSection);if(section)section.classList.add("hidden");return;}
+    if(sectionClose){e.preventDefault();e.stopPropagation();goBackFromLearningView();return;}
     const play=e.target.closest("[data-play]");if(play)playVideo(play.dataset.play);
     const pdf=e.target.closest("[data-open-pdf]");if(pdf&&!e.target.closest("[data-delete]"))openPdf(pdf.dataset.openPdf);
     const boardPdf=e.target.closest("[data-open-board-pdf]");if(boardPdf&&!e.target.closest("[data-board-upload],.board-card-upload,[data-delete]"))openPdf(boardPdf.dataset.openBoardPdf);
@@ -1222,8 +1344,9 @@ function initEvents() {
     const option=e.target.closest("[data-option]");if(option)answerQuiz(Number(option.dataset.option));
     if(e.target.id==="nextQuestionBtn")nextQuizQuestion();if(e.target.id==="retryQuizBtn")startQuiz();
     const readerTab=e.target.closest("[data-reader-pdf]");if(readerTab)selectReaderDocument(readerTab.dataset.readerPdf);
-    const close=e.target.closest("[data-close-modal]");if(close)closeModal(close.closest(".modal"));
+    const close=e.target.closest("[data-close-modal]");if(close){const modal=close.closest(".modal");if(modal?.id==="pdfModal")closePdfFromUser();else closeModal(modal);}
     if(e.target.closest("[data-cancel-delete]"))cancelDelete();
+    if(e.target.closest("[data-cancel-logout]"))cancelLogout();
   });
   document.addEventListener("change", e => {
     const input=e.target.closest("input[type='file'][data-max-bytes]");
@@ -1231,8 +1354,10 @@ function initEvents() {
     const boardInput=e.target.closest("[data-board-upload]");
     if(boardInput?.files?.length) uploadBoardPdf(boardInput.dataset.boardUpload,selectedFiles(boardInput),boardInput);
   });
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!fullscreenElement()){$$(".modal.open").forEach(closeModal);}const card=e.target.closest?.("[data-open-pdf]");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(card.dataset.openPdf);}const boardCard=e.target.closest?.("[data-open-board-pdf]");if(boardCard&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(boardCard.dataset.openBoardPdf);}});
-  $("#adminLoginBtn").addEventListener("click",()=>openAdmin()); $("#loginForm").addEventListener("submit",handleLogin); $("#logoutBtn").addEventListener("click",logout);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!fullscreenElement()){$$(".modal.open").forEach(modal=>modal.id==="pdfModal"?closePdfFromUser():closeModal(modal));}const card=e.target.closest?.("[data-open-pdf]");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(card.dataset.openPdf);}const boardCard=e.target.closest?.("[data-open-board-pdf]");if(boardCard&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(boardCard.dataset.openBoardPdf);}});
+  $("#adminLoginBtn").addEventListener("click",()=>openAdmin()); $("#loginForm").addEventListener("submit",handleLogin); $("#logoutBtn").addEventListener("click",requestLogoutConfirmation);
+  $("#headerLogoutBtn").addEventListener("click",requestLogoutConfirmation); $("#confirmLogoutBtn").addEventListener("click",confirmLogout); $("#cancelLogoutBtn").addEventListener("click",cancelLogout);
+  $("#learningViewBack").addEventListener("click",goBackFromLearningView);
   $("#passwordToggle").addEventListener("click",()=>setPasswordVisibility($("#adminPin").type === "password"));
   $("#confirmDeleteBtn").addEventListener("click",confirmDeleteItem);
   $$("[data-admin-tab]").forEach(btn=>btn.addEventListener("click",()=>setAdminTab(btn.dataset.adminTab)));
@@ -1250,13 +1375,12 @@ function initEvents() {
   document.addEventListener("webkitfullscreenchange",syncFullscreenAndRender);
   let readerResizeTimer;
   window.addEventListener("resize",()=>{if(!pdfDocument||!$("#pdfModal").classList.contains("open"))return;clearTimeout(readerResizeTimer);readerResizeTimer=setTimeout(()=>renderPdfPage(),120);});
-  $("#searchBtn").addEventListener("click",()=>{$("#pdfs").scrollIntoView({behavior:"smooth"});setTimeout(()=>$("#librarySearch").focus(),500);});
+  $("#searchBtn").addEventListener("click",()=>{navigateToLearningView(activeClass,"pdfs");setTimeout(()=>$("#librarySearch").focus(),150);});
   $("#boardQuestionsBtn").addEventListener("click",()=>showBoardPage(true));
-  $("#boardBackBtn").addEventListener("click",()=>showBoardPage(false));
-  window.addEventListener("hashchange",()=>showBoardPage(location.hash === "#cbse-board-questions",false));
+  $("#boardBackBtn").addEventListener("click",()=>history.state?.sspCanGoBack?history.back():setLearningView({view:"home",className:activeClass,target:""},{historyMode:"replace"}));
+  window.addEventListener("popstate",restoreNavigationState);
   $("#continueBtn").addEventListener("click",()=>{const first=filtered(data.videos)[0];first?playVideo(first.id):toast("No lesson is available yet.",true);});
   $("#questionBankGrid").addEventListener("click",e=>{const card=e.target.closest("[data-open-bank]");if(!card||e.target.closest("[data-delete]"))return;const item=data.questionBanks.find(q=>q.id===card.dataset.openBank);if(item?.blobKey||item?.url||item?.fallbackUrl)openPdf(item.id);else toast("This set is ready for the admin to attach a solution link.");});
-  $$(".mobile-nav a").forEach(link=>link.addEventListener("click",()=>{$$(".mobile-nav a").forEach(a=>a.classList.remove("active"));link.classList.add("active");}));
 }
 
 function initPwa() {
@@ -1334,5 +1458,13 @@ function initPwa() {
   window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;syncInstallButton();closeModal($("#installModal"));toast("Sanjay Physics installed successfully");});
 }
 
-function init(){ $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();validateAdminSession();syncQuestionDeletions();showBoardPage(location.hash === "#cbse-board-questions",false); }
+function init(){
+  $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();validateAdminSession();syncQuestionDeletions();
+  if(location.hash === "#cbse-board-questions"){
+    history.replaceState({sspBoard:true,sspCanGoBack:false},"",location.href);
+    showBoardPage(true,false);
+  } else {
+    setLearningView(learningStateFromLocation(),{historyMode:"replace",scroll:false});
+  }
+}
 init();

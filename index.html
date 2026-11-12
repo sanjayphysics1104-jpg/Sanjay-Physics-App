@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- KaTeX styles (the font files are resolved from this versioned CDN path). -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css">
-  <link rel="stylesheet" href="style.css?v=unified-scroll-ai-stability-20261109-4">
+  <link rel="stylesheet" href="style.css?v=full-screen-navigation-20261112-1">
   <title>Sanjay Singh Physics</title>
 </head>
 <body>
@@ -55,6 +55,7 @@
         <button class="admin-trigger" id="adminLoginBtn" type="button">
           <span class="avatar-icon">SS</span><span id="adminButtonText">Admin Login</span>
         </button>
+        <button class="header-logout hidden" id="headerLogoutBtn" type="button" aria-haspopup="dialog" aria-controls="logoutConfirmModal">Log out</button>
         <button class="install-btn hidden" id="installBtn" type="button" aria-haspopup="dialog" aria-controls="installModal">Install App</button>
       </div>
     </div>
@@ -100,6 +101,20 @@
   <section class="assistant-strip shell" id="aiAssistantMount" aria-label="AI Physics Assistant"></section>
 
   <main id="home">
+    <nav class="learning-view-bar hidden" id="learningViewBar" aria-label="Learning view navigation">
+      <button class="learning-back" id="learningViewBack" type="button">← Back</button>
+      <div><small id="learningViewClass">Class 9th</small><strong id="learningViewTitle">Class dashboard</strong></div>
+    </nav>
+
+    <section class="class-dashboard shell hidden" id="classDashboard" aria-labelledby="classDashboardTitle">
+      <div class="class-dashboard-heading">
+        <span class="section-kicker">SELECT A LEARNING AREA</span>
+        <h1 id="classDashboardTitle">Class 9th dashboard</h1>
+        <p>Your existing lectures, chapter-wise notes, question banks and quizzes.</p>
+      </div>
+      <div class="class-dashboard-grid" id="classDashboardGrid"></div>
+    </section>
+
     <section class="hero shell">
       <div class="hero-copy">
         <div class="eyebrow"><span></span> Learn physics with clarity</div>
@@ -294,6 +309,20 @@
     </div>
   </div>
 
+  <div class="modal" id="logoutConfirmModal" role="alertdialog" aria-modal="true" aria-labelledby="logoutConfirmTitle" aria-describedby="logoutConfirmMessage" aria-hidden="true">
+    <div class="modal-backdrop" data-cancel-logout></div>
+    <div class="modal-panel confirm-logout-panel">
+      <span class="modal-icon" aria-hidden="true">↪</span>
+      <h2 id="logoutConfirmTitle">Log out of admin?</h2>
+      <p id="logoutConfirmMessage">This ends only the current authenticated admin session. Learning content, PDFs, settings and assistant data will stay on this device.</p>
+      <p class="form-error" id="logoutError" role="alert"></p>
+      <div class="confirm-logout-actions">
+        <button class="secondary-btn" id="cancelLogoutBtn" type="button" data-cancel-logout>Cancel</button>
+        <button class="confirm-logout-btn" id="confirmLogoutBtn" type="button">Log out</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle" aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div><div class="modal-panel media-panel"><button class="close-btn" data-close-modal>×</button><div class="video-frame" id="videoFrame"></div><h2 id="videoModalTitle"></h2><p id="videoModalMeta"></p></div>
   </div>
@@ -394,7 +423,7 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/contrib/auto-render.min.js" defer></script>
   <script src="api-config.js" defer></script>
-  <script src="script.js?v=assistant-board-recovery-20261109-1" defer></script>
+  <script src="script.js?v=full-screen-navigation-20261112-1" defer></script>
   <script src="ai-assistant.js?v=persistent-drawer-20261109-4" defer></script>
   <!-- Independent, fully offline Sanjay Physics Assistant. -->
   <script src="Sanjay_Physics_Assistant/knowledge-base.js" defer></script>

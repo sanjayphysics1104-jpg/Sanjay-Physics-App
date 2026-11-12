@@ -36,11 +36,11 @@ test("every major learning section has a functional close control", () => {
   }
   assert.match(html, /id="boardBackBtn"[^>]*>\s*×\s*<\/button>/);
   assert.match(script, /closest\("\[data-close-section\]"\)/);
-  assert.match(script, /classList\.add\("hidden"\)/);
-  assert.match(script, /section\.classList\.remove\("hidden"\)/);
+  assert.match(script, /goBackFromLearningView\(\)/);
+  assert.match(script, /section\.classList\.toggle\("hidden", view !== "home" && !active\)/);
 });
 
-test("sidebar category rows toggle branches with right/down arrow state", () => {
+test("class rows open dedicated dashboards while the CBSE row retains its branch control", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "style.css"), "utf8");
   const script = fs.readFileSync(path.join(root, "script.js"), "utf8");
@@ -48,7 +48,7 @@ test("sidebar category rows toggle branches with right/down arrow state", () => 
   assert.match(css, /\.nav-chevron\{[^}]*transform:rotate\(0deg\);[^}]*transition:transform \.22s ease/s);
   assert.match(css, /\.nav-branch\.expanded \.nav-chevron\{[^}]*transform:rotate\(90deg\)/s);
   assert.match(script, /function toggleNavigationBranch\(tab\)/);
-  assert.match(script, /const shouldExpand=toggleNavigationBranch\(tab\);if\(!shouldExpand\)return;/);
+  assert.match(script, /if\(tab\)\{openClassDashboard\(tab\.dataset\.class\);\}/);
   assert.match(script, /const boardTab=e\.target\.closest\("\[data-board-nav\]"\);if\(boardTab\)\{const shouldExpand=toggleNavigationBranch\(boardTab\);if\(shouldExpand\)showBoardPage\(true\);return;\}/);
 });
 
@@ -131,7 +131,7 @@ test("CBSE board view uses a compact close control with no promotional hero", ()
   assert.match(html, /id="boardChapterList"/);
   assert.match(html, /id="boardLibrarySearch"/);
   assert.match(html, /id="boardChapterFilter"/);
-  assert.match(script, /#boardBackBtn"\)\.addEventListener\("click",\(\)=>showBoardPage\(false\)\)/);
+  assert.match(script, /#boardBackBtn"\)\.addEventListener\("click",\(\)=>history\.state\?\.sspCanGoBack\?history\.back\(\):setLearningView/);
   assert.match(css, /\.reader-heading h2\{[^}]*text-overflow:ellipsis/);
 });
 

@@ -3,15 +3,19 @@
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
+const crypto = require("node:crypto");
 
 const root = path.resolve(__dirname, "..");
 const envLine = fs.readFileSync(path.join(root, ".env"), "utf8")
   .split(/\r?\n/)
   .find(line => /^\s*GEMINI_API_KEY\s*=/.test(line));
 if (envLine) process.env.GEMINI_API_KEY = envLine.split("=").slice(1).join("=").trim().replace(/^['"]|['"]$/g, "");
+process.env.ADMIN_PIN_HASH ||= crypto.createHash("sha256").update("sanjay-physics:runtime-test-pin").digest("hex");
+process.env.ADMIN_SESSION_SECRET ||= "sanjay-physics-runtime-test-secret-2026";
 
 const health = require(path.join(root, "api", "health.js"));
 const physicsAssistant = require(path.join(root, "api", "physics-assistant.js"));
+const adminSession = require(path.join(root, "api", "admin-session.js"));
 const mime = {".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".mjs":"text/javascript; charset=utf-8", ".json":"application/json", ".png":"image/png", ".jpg":"image/jpeg", ".svg":"image/svg+xml", ".pdf":"application/pdf"};
 
 function routeResponse(response) {
@@ -31,6 +35,12 @@ const server = http.createServer(async (request, response) => {
     for await (const chunk of request) raw += chunk;
     request.body = raw;
     return physicsAssistant(request, routeResponse(response));
+  }
+  if (url.pathname === "/api/admin-session") {
+    let raw = "";
+    for await (const chunk of request) raw += chunk;
+    request.body = raw;
+    return adminSession(request, routeResponse(response));
   }
   const relative = decodeURIComponent(url.pathname === "/" ? "index.html" : url.pathname.slice(1));
   const filePath = path.resolve(root, relative);

@@ -610,3 +610,69 @@ body.ai-chat-open .assistant-strip .ai-assistant{filter:none!important;z-index:1
   .quiz-section-close{top:0;right:0}
   .quiz-intro{padding-right:52px}
 }
+
+/* Dedicated class and learning views: the existing sections become one-screen routes. */
+.header-logout{min-height:40px;border:1px solid rgba(255,255,255,.3);border-radius:9px;padding:0 13px;background:rgba(128,20,37,.2);color:#fff;font:700 11px/1 Manrope,Arial,sans-serif;cursor:pointer}
+.header-logout:hover,.header-logout:focus-visible{border-color:#ffc3ca;background:#8c2332;outline:none}
+.learning-view-bar{position:sticky;z-index:39;top:86px;min-height:66px;display:flex;align-items:center;gap:14px;margin-left:264px;padding:9px max(24px,calc((100vw - 1444px)/2));border-bottom:1px solid #dce5e8;background:rgba(255,255,255,.97);box-shadow:0 7px 20px rgba(27,61,79,.07);backdrop-filter:blur(14px)}
+.learning-view-bar>div{display:grid;gap:2px}
+.learning-view-bar small{color:#008b72;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.learning-view-bar strong{color:#263c46;font-size:15px}
+.learning-back{min-height:42px;border:1px solid #c8d7dc;border-radius:10px;padding:0 15px;background:#fff;color:#07528d;font-weight:800;cursor:pointer}
+.learning-back:hover,.learning-back:focus-visible{border-color:#008b72;background:#edf7f5;color:#006d5d;outline:none}
+.class-dashboard{padding-block:clamp(34px,6vw,76px);min-height:calc(100dvh - 152px)}
+.class-dashboard-heading{max-width:720px;margin-bottom:30px}
+.class-dashboard-heading h1{margin:8px 0 10px;color:#243943;font-size:clamp(30px,4vw,48px)}
+.class-dashboard-heading p{margin:0;color:#667982;line-height:1.65}
+.class-dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.class-dashboard-card{position:relative;min-height:150px;display:grid;grid-template-columns:52px minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;column-gap:16px;border:1px solid #d7e3e6;border-radius:16px;padding:24px;background:#fff;color:#263e48;text-align:left;box-shadow:0 8px 24px rgba(30,67,83,.07);cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}
+.class-dashboard-card:hover,.class-dashboard-card:focus-visible{transform:translateY(-2px);border-color:#81c3b6;box-shadow:0 15px 34px rgba(30,67,83,.12);outline:none}
+.class-dashboard-card>span{grid-row:1/3;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:#e3f4f0;color:#007b67;font-size:20px;font-weight:900}
+.class-dashboard-card strong{align-self:end;font-size:17px}
+.class-dashboard-card small{align-self:start;color:#778a92;font-size:11px}
+.class-dashboard-card b{grid-column:3;grid-row:1/3;color:#008b72;font-size:22px}
+body.learning-dashboard-open .class-nav{display:none}
+body.learning-section-open .class-nav{display:none}
+body.learning-dashboard-open #home,body.learning-section-open #home,body.learning-dashboard-open footer,body.learning-section-open footer{margin-left:0}
+body.learning-dashboard-open .assistant-strip,body.learning-section-open .assistant-strip,body.learning-dashboard-open .hero,body.learning-section-open .hero,body.learning-dashboard-open .quick-stats,body.learning-section-open .quick-stats,body.learning-dashboard-open footer,body.learning-section-open footer{display:none!important}
+body.learning-dashboard-open .learning-view-bar,body.learning-section-open .learning-view-bar{margin-left:0}
+body.learning-dashboard-open .learning-section{display:none!important}
+body.learning-section-open #classDashboard{display:none!important}
+body.learning-section-open .learning-section{display:none!important}
+body.learning-section-open .learning-section.active-learning-section{display:block!important;min-height:calc(100dvh - 152px);padding-block:28px 42px}
+body.learning-section-open .learning-section.active-learning-section .learning-scroll{max-height:none;overflow:visible;overscroll-behavior:auto;padding-right:2px;scrollbar-gutter:auto}
+body.learning-section-open .learning-section.active-learning-section #pdfGrid{max-height:none;overflow:visible}
+body.learning-section-open .mobile-nav{display:none}
+body.learning-section-open{padding-bottom:0}
+.confirm-logout-panel{max-width:460px}
+.confirm-logout-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.confirm-logout-btn{min-height:44px;border:0;border-radius:10px;padding:0 18px;background:#a72d3d;color:#fff;font-weight:800;cursor:pointer}
+.confirm-logout-btn:hover,.confirm-logout-btn:focus-visible{background:#871f2e;outline:2px solid #eaa4ad;outline-offset:2px}
+.confirm-logout-btn:disabled{opacity:.6;cursor:wait}
+
+@media(max-width:1100px) and (min-width:901px){.learning-view-bar{margin-left:224px}}
+@media(max-width:900px){
+  .learning-view-bar{top:138px;margin-left:0;padding-inline:18px}
+  body.learning-dashboard-open .class-nav,body.learning-section-open .class-nav{display:none}
+  .class-dashboard{min-height:calc(100dvh - 204px)}
+  body.learning-section-open .learning-section.active-learning-section{min-height:calc(100dvh - 204px)}
+}
+@media(max-width:620px){
+  .header-logout{width:38px;min-height:38px;padding:0;font-size:0}
+  .header-logout::before{content:"↪";font-size:18px}
+  .header-library-tools{grid-template-columns:minmax(0,1fr) 48px}
+  .header-library-tools>*{min-width:0}
+  .header-library-tools .ai-launcher{width:48px;min-width:0;padding:5px;justify-content:center}
+  .header-library-tools .ai-launcher-copy{display:none}
+  .learning-view-bar{top:130px;min-height:58px;padding:7px 12px}
+  .learning-back{min-height:40px;padding-inline:12px}
+  .learning-view-bar strong{font-size:13px}
+  .class-dashboard{width:min(100% - 24px,1180px);min-height:calc(100dvh - 188px);padding-block:26px 38px}
+  .class-dashboard-grid{grid-template-columns:1fr;gap:11px}
+  .class-dashboard-card{min-height:104px;grid-template-columns:44px minmax(0,1fr) auto;padding:17px;column-gap:13px}
+  .class-dashboard-card>span{width:44px;height:44px;border-radius:12px;font-size:17px}
+  .class-dashboard-card strong{font-size:15px}
+  body.learning-section-open .learning-section.active-learning-section{min-height:calc(100dvh - 188px);padding-block:18px 30px}
+  body.learning-section-open .learning-panel-shell{width:min(100% - 20px,1180px)}
+  .confirm-logout-actions{display:grid;grid-template-columns:1fr 1fr}
+}
