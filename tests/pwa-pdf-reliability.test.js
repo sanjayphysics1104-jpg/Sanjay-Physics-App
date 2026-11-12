@@ -37,7 +37,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
     caches: {
       open: async () => cache,
       match: async () => undefined,
-      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "unrelated-origin-cache"],
+      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "unrelated-origin-cache"],
       delete: async key => { deletedCaches.push(key); return true; }
     },
     self: {
@@ -65,8 +65,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   let activation;
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
-  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer"]);
-  assert.match(worker, /v65-same-origin-pdf/);
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf"]);
+  assert.match(worker, /v66-pdf-proxy-route/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -166,8 +166,8 @@ test("all preserved PDF files retain valid PDF signatures", () => {
 
 test("Vercel proxies Git LFS PDFs through the app origin for PDF.js range loading", () => {
   const vercel = JSON.parse(read("vercel.json"));
-  const pdfRewrite = vercel.rewrites?.find(rule => rule.source === "/assets/pdfs/:path*");
+  const pdfRewrite = vercel.rewrites?.find(rule => rule.source === "/pdf-media/:path*");
   assert.ok(pdfRewrite, "same-origin bundled PDF proxy is missing");
   assert.match(pdfRewrite.destination, /^https:\/\/media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main\/assets\/pdfs\/:path\*$/);
-  assert.doesNotMatch(read("script.js"), /return `\$\{BUNDLED_PDF_MEDIA_BASE\}/);
+  assert.match(read("script.js"), /new URL\(`\/pdf-media\/\$\{mediaPath\}/);
 });

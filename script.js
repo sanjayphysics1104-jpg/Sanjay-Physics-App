@@ -590,6 +590,10 @@ function renderReaderDocumentTabs() {
 async function resolveReaderPdfUrl(pdf, collection) {
   const resolveBundledPdf = async source => {
     const resolved = new URL(source, document.baseURI);
+    if (resolved.pathname.startsWith("/assets/pdfs/") && !["localhost","127.0.0.1"].includes(location.hostname)) {
+      const mediaPath = resolved.pathname.slice("/assets/pdfs/".length);
+      return new URL(`/pdf-media/${mediaPath}${resolved.search}`, document.baseURI).href;
+    }
     return resolved.href;
   };
   if (!pdf.blobKey) {

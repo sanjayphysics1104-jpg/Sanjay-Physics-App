@@ -17,7 +17,7 @@
   ],
   "rewrites": [
     {
-      "source": "/assets/pdfs/:path*",
+      "source": "/pdf-media/:path*",
       "destination": "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/assets/pdfs/:path*"
     }
   ],
