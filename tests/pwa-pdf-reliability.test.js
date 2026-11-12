@@ -1,0 +1,103 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+
+const root = path.resolve(__dirname, "..");
+const read = file => fs.readFileSync(path.join(root, file), "utf8");
+
+test("startup data cloning works when Android does not provide structuredClone", () => {
+  const script = read("script.js");
+  const helper = script.match(/const cloneContentData = [\s\S]*?;\r?\nconst IMPORTED_CLASS_9_PDF_PATH/)?.[0]
+    .replace(/\r?\nconst IMPORTED_CLASS_9_PDF_PATH[\s\S]*$/, "");
+  assert.ok(helper, "startup clone helper was not found");
+  const context = {result:null};
+  vm.runInNewContext(`${helper}\nresult = cloneContentData({chapter:{name:"Motion"}});`, context);
+  assert.deepEqual(JSON.parse(JSON.stringify(context.result)), {chapter:{name:"Motion"}});
+  assert.equal((script.match(/structuredClone\(/g) || []).length, 1, "all content cloning must go through the compatibility helper");
+});
+
+test("service worker bypasses PDFs and byte ranges but handles navigations", async () => {
+  const worker = read("sw.js");
+  const listeners = {};
+  const cache = {
+    addAll: async () => {},
+    match: async () => undefined,
+    put: async () => {}
+  };
+  const response = {ok:true, clone(){ return this; }};
+  const context = {
+    URL,
+    Set,
+    Map,
+    Promise,
+    fetch: async () => response,
+    caches: {
+      open: async () => cache,
+      match: async () => undefined,
+      keys: async () => [],
+      delete: async () => true
+    },
+    self: {
+      registration:{scope:"https://physics.example/"},
+      location:{origin:"https://physics.example"},
+      addEventListener(type, handler){ listeners[type] = handler; },
+      skipWaiting: async () => {},
+      clients:{claim:async () => {}}
+    }
+  };
+  vm.runInNewContext(worker, context);
+
+  const dispatchFetch = request => {
+    let promise;
+    listeners.fetch({request, respondWith(value){ promise = value; }});
+    return promise;
+  };
+  const headers = range => ({has(name){ return name === "range" && range; }});
+
+  assert.equal(dispatchFetch({method:"GET",url:"https://physics.example/assets/notes.pdf",headers:headers(false),mode:"same-origin"}), undefined);
+  assert.equal(dispatchFetch({method:"GET",url:"https://physics.example/assets/notes.bin",headers:headers(true),mode:"same-origin"}), undefined);
+  const navigation = dispatchFetch({method:"GET",url:"https://physics.example/",headers:headers(false),mode:"navigate"});
+  assert.equal(typeof navigation?.then, "function");
+  assert.equal(await navigation, response);
+  assert.match(worker, /sanjay-physics-v59-android-pdf-fix/);
+  assert.match(worker, /clients\.claim\(\)/);
+  assert.match(worker, /skipWaiting\(\)/);
+});
+
+test("reader includes Android fallback and routes question PDFs through one reader", () => {
+  const html = read("index.html");
+  const script = read("script.js");
+  assert.match(html, /id="readerOpenExternal"[^>]*target="_blank"[^>]*rel="noopener"/);
+  assert.match(html, /id="readerFallbackOpen"[^>]*target="_blank"[^>]*rel="noopener"/);
+  assert.match(script, /const isAndroid = \/Android\/i\.test\(navigator\.userAgent/);
+  assert.match(script, /item\?\.blobKey\|\|item\?\.url\|\|item\?\.fallbackUrl\)openPdf\(item\.id\)/);
+  assert.doesNotMatch(script, /else if\(item\?\.url\)window\.open/);
+});
+
+test("manifest launches at the Vercel root without an index redirect", () => {
+  const manifest = JSON.parse(read("manifest.json"));
+  assert.equal(manifest.start_url, "./");
+  assert.equal(manifest.scope, "./");
+  assert.equal(manifest.display, "standalone");
+});
+
+test("all preserved PDF files retain valid PDF signatures", () => {
+  const pdfRoot = path.join(root, "assets", "pdfs");
+  const files = [];
+  const walk = directory => {
+    for (const entry of fs.readdirSync(directory, {withFileTypes:true})) {
+      const fullPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(fullPath);
+      else if (/\.pdf$/i.test(entry.name)) files.push(fullPath);
+    }
+  };
+  walk(pdfRoot);
+  assert.equal(files.length, 97);
+  for (const file of files) {
+    const bytes = fs.readFileSync(file);
+    assert.equal(bytes.subarray(0, 5).toString(), "%PDF-", path.relative(root, file));
+    assert.match(bytes.subarray(Math.max(0, bytes.length - 2048)).toString("latin1"), /%%EOF/, path.relative(root, file));
+  }
+});

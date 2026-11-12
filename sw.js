@@ -1,5 +1,7 @@
-const CACHE_NAME = "sanjay-physics-v58-offline-pdf-corpus";
+const CACHE_NAME = "sanjay-physics-v59-android-pdf-fix";
 const APP_SHELL = ["./", "./index.html", "./style.css", "./script.js", "./api-config.js", "./ai-assistant.js", "./Sanjay_Physics_Assistant/knowledge-base.js", "./Sanjay_Physics_Assistant/academic-knowledge-12.json", "./Sanjay_Physics_Assistant/academic-db.js", "./Sanjay_Physics_Assistant/corpus-index.js", "./Sanjay_Physics_Assistant/offline-engine.js", "./Sanjay_Physics_Assistant/offline-ui.js", "./Sanjay_Physics_Assistant/pdf-index/manifest.json", "./Sanjay_Physics_Assistant/pdf-index/class-9.json", "./Sanjay_Physics_Assistant/pdf-index/class-10.json", "./Sanjay_Physics_Assistant/pdf-index/class-11.json", "./Sanjay_Physics_Assistant/pdf-index/class-12.json", "./manifest.json", "./assets/reference-sanjay-physics-logo.png", "./assets/reference-logo-192.png", "./assets/reference-logo-512.png"];
+const SHELL_URLS = new Set(APP_SHELL.map(path => new URL(path, self.registration.scope).href));
+const SHELL_PATHS = new Map([...SHELL_URLS].map(url => [new URL(url).pathname, url]));
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
@@ -9,24 +11,44 @@ self.addEventListener("activate", event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 
+async function networkFirst(request, fallbackUrl) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) await cache.put(fallbackUrl || request, response.clone());
+    return response;
+  } catch (error) {
+    return (await cache.match(request)) || (fallbackUrl ? await cache.match(fallbackUrl) : undefined) || Promise.reject(error);
+  }
+}
+
+async function shellCacheFirst(request, cacheKey) {
+  const cached = (await caches.match(request)) || (cacheKey ? await caches.match(cacheKey) : undefined);
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response && response.ok) await (await caches.open(CACHE_NAME)).put(cacheKey || request, response.clone());
+  return response;
+}
+
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-  const requestUrl = new URL(event.request.url);
-  if (requestUrl.pathname.startsWith("/api/")) return;
-  if (requestUrl.pathname.endsWith("/api-config.js")) {
-    event.respondWith(fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-      return response;
-    }).catch(() => caches.match(event.request)));
+  const request = event.request;
+  if (request.method !== "GET") return;
+  const requestUrl = new URL(request.url);
+  if (requestUrl.origin !== self.location.origin || requestUrl.pathname.startsWith("/api/")) return;
+
+  // PDF viewers depend on byte-range responses. A cached full 200 response for
+  // a Range request breaks Android viewers, and caching large PDFs can exhaust
+  // mobile storage, so document traffic always goes directly to the network.
+  if (request.headers.has("range") || /\.pdf$/i.test(requestUrl.pathname)) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request, "./index.html"));
     return;
   }
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      if (!response || (response.status !== 200 && response.type !== "opaque")) return response;
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-      return response;
-    }).catch(() => event.request.mode === "navigate" ? caches.match("./index.html") : undefined))
-  );
+  if (requestUrl.pathname.endsWith("/api-config.js")) {
+    event.respondWith(networkFirst(request, "./api-config.js"));
+    return;
+  }
+  const shellUrl = SHELL_PATHS.get(requestUrl.pathname);
+  if (shellUrl) event.respondWith(shellCacheFirst(request, shellUrl));
 });

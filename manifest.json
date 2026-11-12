@@ -2,7 +2,7 @@
   "name": "Sanjay Singh Physics",
   "short_name": "Sanjay Physics",
   "description": "Physics lectures, notes, question banks and quizzes for Classes 9–12 and NEET/JEE.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

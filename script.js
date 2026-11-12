@@ -15,6 +15,9 @@ const BOARD_PDF_DB_NAME = "ssp_cbse_board_pdf_files_v1";
 const BOARD_PDF_STORE_NAME = "boardPdfFiles";
 const QUESTION_BANK_PDF_DB_NAME = "ssp_question_bank_pdf_files_v1";
 const QUESTION_BANK_PDF_STORE_NAME = "questionBankPdfFiles";
+const cloneContentData = value => typeof structuredClone === "function"
+  ? structuredClone(value)
+  : JSON.parse(JSON.stringify(value));
 const IMPORTED_CLASS_9_PDF_PATH = "assets/pdfs/class-9/imported";
 const IMPORTED_CLASS_9_PDFS = [
   ["Force and Laws of Motion.pdf","Force and Laws",8,1189410],
@@ -289,7 +292,7 @@ const escapeHTML = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&
 function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!saved || !saved.videos || !saved.pdfs || !saved.questionBanks || !saved.quizzes) return structuredClone(DEFAULT_DATA);
+    if (!saved || !saved.videos || !saved.pdfs || !saved.questionBanks || !saved.quizzes) return cloneContentData(DEFAULT_DATA);
     saved.boardQuestions = Array.isArray(saved.boardQuestions) ? saved.boardQuestions : [];
     // Reattach the protected on-disk legacy files for browsers/profiles that do
     // not have the original IndexedDB blobs. Existing uploaded metadata wins,
@@ -297,18 +300,18 @@ function loadData() {
     [...IMPORTED_CLASS_9_PDFS, ...IMPORTED_CLASS_10_PDFS, ...IMPORTED_CLASS_11_PDFS, ...RECOVERED_CLASS_11_PDFS, ...RECOVERED_CLASS_12_PDFS].forEach(recovered => {
       const existing = saved.pdfs.find(pdf => pdf.fileName === recovered.fileName);
       if (existing) existing.fallbackUrl = recovered.url;
-      else saved.pdfs.push(structuredClone(recovered));
+      else saved.pdfs.push(cloneContentData(recovered));
     });
     RECOVERED_CBSE_BOARD_QUESTIONS.forEach(recovered => {
       const existing = saved.boardQuestions.find(pdf => pdf.chapter === recovered.chapter && (pdf.fileName === recovered.fileName || pdf.url === recovered.url));
-      if (!existing) saved.boardQuestions.push(structuredClone(recovered));
+      if (!existing) saved.boardQuestions.push(cloneContentData(recovered));
     });
     IMPORTED_CBSE_BOARD_PDFS.forEach(imported => {
       const existing = saved.boardQuestions.find(pdf => pdf.chapter === imported.chapter && (pdf.fileName === imported.fileName || pdf.url === imported.url));
-      if (!existing) saved.boardQuestions.push(structuredClone(imported));
+      if (!existing) saved.boardQuestions.push(cloneContentData(imported));
     });
     return saved;
-  } catch { return structuredClone(DEFAULT_DATA); }
+  } catch { return cloneContentData(DEFAULT_DATA); }
 }
 
 function saveData() {
@@ -579,13 +582,17 @@ function renderReaderDocumentTabs() {
 }
 
 async function resolveReaderPdfUrl(pdf, collection) {
-  if (!pdf.blobKey) return pdf.url || pdf.fallbackUrl || "";
+  if (!pdf.blobKey) {
+    const source = pdf.url || pdf.fallbackUrl || "";
+    if (source) return new URL(source, document.baseURI).href;
+    throw new Error("PDF URL unavailable");
+  }
   try {
     const file = collection === "boardQuestions" ? await getBoardPdfFile(pdf.blobKey) : collection === "questionBanks" ? await getQuestionBankPdfFile(pdf.blobKey) : await getPdfFile(pdf.blobKey);
     if (file) return URL.createObjectURL(file);
-    if (pdf.fallbackUrl) return pdf.fallbackUrl;
+    if (pdf.fallbackUrl) return new URL(pdf.fallbackUrl, document.baseURI).href;
   } catch {
-    if (pdf.fallbackUrl) return pdf.fallbackUrl;
+    if (pdf.fallbackUrl) return new URL(pdf.fallbackUrl, document.baseURI).href;
   }
   throw new Error("PDF file unavailable");
 }
@@ -610,6 +617,9 @@ async function selectReaderDocument(id, announceError = true) {
     $("#readerClass").textContent = `${nextPdf.className} • ${nextPdf.chapter}`;
     $("#totalPages").textContent = nextPdf.pages || 1;
     $("#pageNumber").max = nextPdf.pages || 1;
+    $("#readerOpenExternal").href = nextUrl;
+    $("#readerOpenExternal").classList.remove("hidden");
+    $("#readerFallbackOpen").href = nextUrl;
     renderReaderDocumentTabs();
     updateReader();
     return true;
@@ -638,9 +648,15 @@ function updateReader(direction = 0) {
   page.classList.add("turning");
   setTimeout(() => {
     const hasUrl = Boolean(currentPdfUrl);
-    $("#pdfViewer").style.display = hasUrl ? "block" : "none";
-    $("#readerPlaceholder").style.display = hasUrl ? "none" : "grid";
-    if (hasUrl) $("#pdfViewer").src = `${currentPdfUrl}${currentPdfUrl.includes("#") ? "&" : "#"}page=${currentPage}&view=FitH`;
+    const isAndroid = /Android/i.test(navigator.userAgent || "");
+    const canEmbed = hasUrl && !isAndroid;
+    $("#pdfViewer").style.display = canEmbed ? "block" : "none";
+    $("#readerPlaceholder").style.display = canEmbed ? "none" : "grid";
+    $("#readerPlaceholderTitle").textContent = isAndroid ? "Open this PDF in your browser" : "Preview unavailable";
+    $("#readerPlaceholderText").textContent = isAndroid ? "Android installed apps do not always include an embedded PDF viewer." : "Use the browser button to open or download this document.";
+    $("#readerFallbackOpen").classList.toggle("hidden", !hasUrl);
+    if (canEmbed) $("#pdfViewer").src = `${currentPdfUrl}${currentPdfUrl.includes("#") ? "&" : "#"}page=${currentPage}&view=FitH`;
+    else $("#pdfViewer").src = "about:blank";
     page.classList.remove("turning");
   }, direction ? 180 : 0);
 }
@@ -714,7 +730,7 @@ function exitReaderFullscreen() {
   if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
   else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
 }
-function closeModal(modal) { modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); document.body.style.overflow=""; if (modal.id === "videoModal") $("#videoFrame").innerHTML=""; if (modal.id === "pdfModal") { exitReaderFullscreen(); pdfLoadToken++; $("#pdfViewer").src="about:blank"; if (activePdfObjectUrl) URL.revokeObjectURL(activePdfObjectUrl); activePdfObjectUrl=null; currentPdfUrl=""; currentPdf=null; readerDocuments=[]; $("#readerDocumentTabs").innerHTML=""; } }
+function closeModal(modal) { modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); document.body.style.overflow=""; if (modal.id === "videoModal") $("#videoFrame").innerHTML=""; if (modal.id === "pdfModal") { exitReaderFullscreen(); pdfLoadToken++; $("#pdfViewer").src="about:blank"; $("#readerOpenExternal").removeAttribute("href"); $("#readerOpenExternal").classList.add("hidden"); $("#readerFallbackOpen").removeAttribute("href"); if (activePdfObjectUrl) URL.revokeObjectURL(activePdfObjectUrl); activePdfObjectUrl=null; currentPdfUrl=""; currentPdf=null; readerDocuments=[]; $("#readerDocumentTabs").innerHTML=""; } }
 
 async function hashPin(pin) {
   const bytes = new TextEncoder().encode(`sanjay-physics:${pin}`);
@@ -1069,7 +1085,7 @@ function initEvents() {
   $("#boardBackBtn").addEventListener("click",()=>showBoardPage(false));
   window.addEventListener("hashchange",()=>showBoardPage(location.hash === "#cbse-board-questions",false));
   $("#continueBtn").addEventListener("click",()=>{const first=filtered(data.videos)[0];first?playVideo(first.id):toast("No lesson is available yet.",true);});
-  $("#questionBankGrid").addEventListener("click",e=>{const card=e.target.closest("[data-open-bank]");if(!card||e.target.closest("[data-delete]"))return;const item=data.questionBanks.find(q=>q.id===card.dataset.openBank);if(item?.blobKey)openPdf(item.id);else if(item?.url)window.open(item.url,"_blank","noopener");else toast("This set is ready for the admin to attach a solution link.");});
+  $("#questionBankGrid").addEventListener("click",e=>{const card=e.target.closest("[data-open-bank]");if(!card||e.target.closest("[data-delete]"))return;const item=data.questionBanks.find(q=>q.id===card.dataset.openBank);if(item?.blobKey||item?.url||item?.fallbackUrl)openPdf(item.id);else toast("This set is ready for the admin to attach a solution link.");});
   $$(".mobile-nav a").forEach(link=>link.addEventListener("click",()=>{$$(".mobile-nav a").forEach(a=>a.classList.remove("active"));link.classList.add("active");}));
 }
 
