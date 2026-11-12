@@ -61,7 +61,9 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   const navigation = dispatchFetch({method:"GET",url:"https://physics.example/",headers:headers(false),mode:"navigate"});
   assert.equal(typeof navigation?.then, "function");
   assert.equal(await navigation, response);
-  assert.match(worker, /sanjay-physics-v59-android-pdf-fix/);
+  assert.match(worker, /sanjay-physics-v60-cross-device-install/);
+  assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
+  assert.match(worker, /Promise\.allSettled\(OFFLINE_CORPUS/);
   assert.match(worker, /clients\.claim\(\)/);
   assert.match(worker, /skipWaiting\(\)/);
 });
@@ -78,9 +80,31 @@ test("reader includes Android fallback and routes question PDFs through one read
 
 test("manifest launches at the Vercel root without an index redirect", () => {
   const manifest = JSON.parse(read("manifest.json"));
-  assert.equal(manifest.start_url, "./");
-  assert.equal(manifest.scope, "./");
+  assert.equal(manifest.id, "/");
+  assert.equal(manifest.start_url, "/");
+  assert.equal(manifest.scope, "/");
   assert.equal(manifest.display, "standalone");
+  assert.deepEqual(manifest.display_override, ["standalone", "minimal-ui"]);
+  assert.ok(manifest.icons.some(icon => icon.sizes === "192x192" && icon.purpose === "any"));
+  assert.ok(manifest.icons.some(icon => icon.sizes === "512x512" && icon.purpose === "maskable"));
+});
+
+test("install control stays discoverable and provides platform-specific fallback guidance", () => {
+  const html = read("index.html");
+  const script = read("script.js");
+  const vercel = JSON.parse(read("vercel.json"));
+  assert.match(html, /class="install-btn" id="installBtn"/);
+  assert.match(html, /id="installModal"/);
+  assert.match(script, /beforeinstallprompt/);
+  assert.match(script, /display-mode: standalone/);
+  assert.match(script, /Add to Home Screen/);
+  assert.match(script, /Install app/);
+  assert.match(script, /Google Chrome or Microsoft Edge/);
+  assert.match(script, /\["localhost","127\.0\.0\.1"\]/);
+  assert.match(script, /register\("\/sw\.js",\{scope:"\/",updateViaCache:"none"\}\)/);
+  const swHeaders = vercel.headers.find(rule => rule.source === "/sw.js")?.headers || [];
+  assert.ok(swHeaders.some(header => header.key === "Service-Worker-Allowed" && header.value === "/"));
+  assert.ok(swHeaders.some(header => header.key === "Cache-Control" && /no-cache/.test(header.value)));
 });
 
 test("all preserved PDF files retain valid PDF signatures", () => {

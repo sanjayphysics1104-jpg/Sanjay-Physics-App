@@ -6,11 +6,12 @@
   <meta name="theme-color" content="#072b42">
   <meta name="description" content="Sanjay Singh Physics — video lectures, notes, question banks and interactive quizzes for Classes 9–12 and NEET/JEE.">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Sanjay Physics">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="assets/reference-sanjay-physics-logo.png" type="image/png">
-  <link rel="apple-touch-icon" href="assets/reference-logo-192.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="assets/reference-logo-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="assets/reference-logo-192.png" sizes="192x192">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -54,7 +55,7 @@
         <button class="admin-trigger" id="adminLoginBtn" type="button">
           <span class="avatar-icon">SS</span><span id="adminButtonText">Admin Login</span>
         </button>
-        <button class="install-btn hidden" id="installBtn" type="button">Install App</button>
+        <button class="install-btn" id="installBtn" type="button" aria-haspopup="dialog" aria-controls="installModal">Install App</button>
       </div>
     </div>
   </header>
@@ -295,6 +296,18 @@
 
   <div class="modal" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle" aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div><div class="modal-panel media-panel"><button class="close-btn" data-close-modal>×</button><div class="video-frame" id="videoFrame"></div><h2 id="videoModalTitle"></h2><p id="videoModalMeta"></p></div>
+  </div>
+
+  <div class="modal" id="installModal" role="dialog" aria-modal="true" aria-labelledby="installModalTitle" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel install-modal-panel">
+      <button class="close-btn" type="button" data-close-modal aria-label="Close installation help">×</button>
+      <span class="modal-icon" aria-hidden="true">↓</span>
+      <h2 id="installModalTitle">Install Sanjay Physics</h2>
+      <p id="installHelpText">Install this app from your browser for a full-screen, standalone experience.</p>
+      <ol class="install-steps" id="installSteps"></ol>
+      <p class="install-note">Installation is device-specific. Open this same Vercel URL and install it once on each Windows, Android, iPhone, iPad, or other supported device.</p>
+    </div>
   </div>
 
   <div class="modal reader-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="readerTitle" aria-hidden="true">

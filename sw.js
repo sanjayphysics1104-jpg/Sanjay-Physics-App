@@ -1,10 +1,17 @@
-const CACHE_NAME = "sanjay-physics-v59-android-pdf-fix";
-const APP_SHELL = ["./", "./index.html", "./style.css", "./script.js", "./api-config.js", "./ai-assistant.js", "./Sanjay_Physics_Assistant/knowledge-base.js", "./Sanjay_Physics_Assistant/academic-knowledge-12.json", "./Sanjay_Physics_Assistant/academic-db.js", "./Sanjay_Physics_Assistant/corpus-index.js", "./Sanjay_Physics_Assistant/offline-engine.js", "./Sanjay_Physics_Assistant/offline-ui.js", "./Sanjay_Physics_Assistant/pdf-index/manifest.json", "./Sanjay_Physics_Assistant/pdf-index/class-9.json", "./Sanjay_Physics_Assistant/pdf-index/class-10.json", "./Sanjay_Physics_Assistant/pdf-index/class-11.json", "./Sanjay_Physics_Assistant/pdf-index/class-12.json", "./manifest.json", "./assets/reference-sanjay-physics-logo.png", "./assets/reference-logo-192.png", "./assets/reference-logo-512.png"];
+const CACHE_NAME = "sanjay-physics-v60-cross-device-install";
+const CORE_SHELL = ["./", "./index.html", "./style.css", "./script.js", "./api-config.js", "./ai-assistant.js", "./Sanjay_Physics_Assistant/knowledge-base.js", "./Sanjay_Physics_Assistant/academic-db.js", "./Sanjay_Physics_Assistant/corpus-index.js", "./Sanjay_Physics_Assistant/offline-engine.js", "./Sanjay_Physics_Assistant/offline-ui.js", "./manifest.json", "./assets/reference-sanjay-physics-logo.png", "./assets/reference-logo-192.png", "./assets/reference-logo-512.png"];
+const OFFLINE_CORPUS = ["./Sanjay_Physics_Assistant/academic-knowledge-12.json", "./Sanjay_Physics_Assistant/pdf-index/manifest.json", "./Sanjay_Physics_Assistant/pdf-index/class-9.json", "./Sanjay_Physics_Assistant/pdf-index/class-10.json", "./Sanjay_Physics_Assistant/pdf-index/class-11.json", "./Sanjay_Physics_Assistant/pdf-index/class-12.json"];
+const APP_SHELL = [...CORE_SHELL, ...OFFLINE_CORPUS];
 const SHELL_URLS = new Set(APP_SHELL.map(path => new URL(path, self.registration.scope).href));
 const SHELL_PATHS = new Map([...SHELL_URLS].map(url => [new URL(url).pathname, url]));
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(CORE_SHELL);
+    await Promise.allSettled(OFFLINE_CORPUS.map(url => cache.add(url)));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", event => {

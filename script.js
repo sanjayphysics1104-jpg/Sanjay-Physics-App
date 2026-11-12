@@ -1090,10 +1090,42 @@ function initEvents() {
 }
 
 function initPwa() {
-  if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-  window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;$("#installBtn").classList.remove("hidden");});
-  $("#installBtn").addEventListener("click",async()=>{if(!deferredInstallPrompt){toast("Use your browser menu and choose ‘Add to Home Screen’. ");return;}deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;$("#installBtn").classList.add("hidden");});
-  window.addEventListener("appinstalled",()=>toast("Sanjay Physics installed successfully"));
+  const installButton = $("#installBtn");
+  const standaloneQuery = window.matchMedia?.("(display-mode: standalone)");
+  const isStandalone = () => Boolean(standaloneQuery?.matches || navigator.standalone === true);
+  const syncInstallButton = () => installButton.classList.toggle("hidden", isStandalone());
+  const showInstallHelp = () => {
+    const userAgent = navigator.userAgent || "";
+    const isIos = /iPad|iPhone|iPod/i.test(userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(userAgent);
+    const steps = isIos
+      ? ["Open this site in Safari.", "Tap the Share button.", "Choose ‘Add to Home Screen’, then tap ‘Add’."]
+      : isAndroid
+        ? ["Open the browser menu (⋮).", "Choose ‘Install app’ or ‘Add to Home screen’.", "Confirm Install."]
+        : ["Open this site in Google Chrome or Microsoft Edge.", "Select the install icon in the address bar, or open the browser menu and choose Apps.", "Choose ‘Install Sanjay Physics’ and confirm."];
+    $("#installHelpText").textContent = isIos ? "Apple devices install web apps from the Share menu." : isAndroid ? "Android browsers expose installation from their main menu." : "Chrome and Microsoft Edge support standalone app installation on desktop.";
+    $("#installSteps").innerHTML = steps.map(step=>`<li>${escapeHTML(step)}</li>`).join("");
+    openModal("installModal");
+  };
+
+  syncInstallButton();
+  standaloneQuery?.addEventListener?.("change",syncInstallButton);
+  const secureForServiceWorker = location.protocol === "https:" || ["localhost","127.0.0.1"].includes(location.hostname);
+  if("serviceWorker" in navigator && secureForServiceWorker) {
+    navigator.serviceWorker.register("/sw.js",{scope:"/",updateViaCache:"none"})
+      .then(registration=>registration.update().catch(()=>{}))
+      .catch(()=>toast("Offline installation could not be prepared. Reload the page and try again.",true));
+  }
+  window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;syncInstallButton();});
+  installButton.addEventListener("click",async()=>{
+    if(isStandalone()){toast("Sanjay Physics is already installed");return;}
+    if(!deferredInstallPrompt){showInstallHelp();return;}
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    if(choice.outcome === "dismissed") showInstallHelp();
+  });
+  window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;syncInstallButton();toast("Sanjay Physics installed successfully");});
 }
 
 function init(){ $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();validateAdminSession();syncQuestionDeletions();showBoardPage(location.hash === "#cbse-board-questions",false); }
