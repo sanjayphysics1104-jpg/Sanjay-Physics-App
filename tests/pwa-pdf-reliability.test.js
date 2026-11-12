@@ -61,7 +61,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   const navigation = dispatchFetch({method:"GET",url:"https://physics.example/",headers:headers(false),mode:"navigate"});
   assert.equal(typeof navigation?.then, "function");
   assert.equal(await navigation, response);
-  assert.match(worker, /sanjay-physics-v60-cross-device-install/);
+  assert.match(worker, /sanjay-physics-v61-install-dialog-action/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
   assert.match(worker, /Promise\.allSettled\(OFFLINE_CORPUS/);
   assert.match(worker, /clients\.claim\(\)/);
@@ -97,6 +97,8 @@ test("install control stays discoverable and provides platform-specific fallback
   const vercel = JSON.parse(read("vercel.json"));
   assert.match(html, /class="install-btn" id="installBtn"/);
   assert.match(html, /id="installModal"/);
+  assert.match(html, /id="installConfirmBtn"[^>]*>Install<\/button>/);
+  assert.match(html, /id="installAvailability"[^>]*role="status"/);
   assert.match(script, /beforeinstallprompt/);
   assert.match(script, /display-mode: standalone/);
   assert.match(script, /Add to Home Screen/);
@@ -104,6 +106,9 @@ test("install control stays discoverable and provides platform-specific fallback
   assert.match(script, /Google Chrome or Microsoft Edge/);
   assert.match(script, /\["localhost","127\.0\.0\.1"\]/);
   assert.match(script, /register\("\/sw\.js",\{scope:"\/",updateViaCache:"none"\}\)/);
+  assert.match(script, /installConfirmButton\.addEventListener\("click",requestInstall\)/);
+  assert.match(script, /await promptEvent\.prompt\(\)/);
+  assert.match(script, /await promptEvent\.userChoice/);
   const swHeaders = vercel.headers.find(rule => rule.source === "/sw.js")?.headers || [];
   assert.ok(swHeaders.some(header => header.key === "Service-Worker-Allowed" && header.value === "/"));
   assert.ok(swHeaders.some(header => header.key === "Cache-Control" && /no-cache/.test(header.value)));

@@ -1,4 +1,4 @@
-const CACHE_NAME = "sanjay-physics-v60-cross-device-install";
+const CACHE_NAME = "sanjay-physics-v61-install-dialog-action";
 const CORE_SHELL = ["./", "./index.html", "./style.css", "./script.js", "./api-config.js", "./ai-assistant.js", "./Sanjay_Physics_Assistant/knowledge-base.js", "./Sanjay_Physics_Assistant/academic-db.js", "./Sanjay_Physics_Assistant/corpus-index.js", "./Sanjay_Physics_Assistant/offline-engine.js", "./Sanjay_Physics_Assistant/offline-ui.js", "./manifest.json", "./assets/reference-sanjay-physics-logo.png", "./assets/reference-logo-192.png", "./assets/reference-logo-512.png"];
 const OFFLINE_CORPUS = ["./Sanjay_Physics_Assistant/academic-knowledge-12.json", "./Sanjay_Physics_Assistant/pdf-index/manifest.json", "./Sanjay_Physics_Assistant/pdf-index/class-9.json", "./Sanjay_Physics_Assistant/pdf-index/class-10.json", "./Sanjay_Physics_Assistant/pdf-index/class-11.json", "./Sanjay_Physics_Assistant/pdf-index/class-12.json"];
 const APP_SHELL = [...CORE_SHELL, ...OFFLINE_CORPUS];
