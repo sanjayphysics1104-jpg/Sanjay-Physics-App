@@ -12,7 +12,7 @@ if (envLine) process.env.GEMINI_API_KEY = envLine.split("=").slice(1).join("=").
 
 const health = require(path.join(root, "api", "health.js"));
 const physicsAssistant = require(path.join(root, "api", "physics-assistant.js"));
-const mime = {".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".json":"application/json", ".png":"image/png", ".jpg":"image/jpeg", ".svg":"image/svg+xml", ".pdf":"application/pdf"};
+const mime = {".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".mjs":"text/javascript; charset=utf-8", ".json":"application/json", ".png":"image/png", ".jpg":"image/jpeg", ".svg":"image/svg+xml", ".pdf":"application/pdf"};
 
 function routeResponse(response) {
   return {

@@ -284,6 +284,12 @@ let activePdfObjectUrl = null;
 let readerDocuments = [];
 let currentPdfCollection = "pdfs";
 let pdfLoadToken = 0;
+let pdfDocument = null;
+let pdfLoadingTask = null;
+let pdfRenderTask = null;
+let pdfRenderSerial = 0;
+let pdfZoom = 1;
+let pdfJsPromise = null;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -586,13 +592,7 @@ async function resolveReaderPdfUrl(pdf, collection) {
   const resolveBundledPdf = async source => {
     const resolved = new URL(source, document.baseURI);
     if (!resolved.pathname.startsWith("/assets/pdfs/")) return resolved.href;
-    const mediaUrl = `${BUNDLED_PDF_MEDIA_BASE}${resolved.pathname.slice(1)}${resolved.search}`;
-    const mobilePdfFallback = /Android|iPad|iPhone|iPod/i.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    if (mobilePdfFallback) return mediaUrl;
-    const response = await fetch(mediaUrl);
-    if (!response.ok) throw new Error(`PDF request failed with ${response.status}`);
-    const bytes = await response.blob();
-    return URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+    return `${BUNDLED_PDF_MEDIA_BASE}${resolved.pathname.slice(1)}${resolved.search}`;
   };
   if (!pdf.blobKey) {
     const source = pdf.url || pdf.fallbackUrl || "";
@@ -607,6 +607,140 @@ async function resolveReaderPdfUrl(pdf, collection) {
     if (pdf.fallbackUrl) return resolveBundledPdf(pdf.fallbackUrl);
   }
   throw new Error("PDF file unavailable");
+}
+
+function loadPdfJs() {
+  if (!pdfJsPromise) {
+    pdfJsPromise = import("/vendor/pdfjs/pdf.min.mjs").then(pdfjsLib => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.mjs";
+      return pdfjsLib;
+    });
+  }
+  return pdfJsPromise;
+}
+
+function showReaderPlaceholder(title, message, allowExternal = false) {
+  $("#pdfCanvas").style.display = "none";
+  $("#readerPlaceholder").style.display = "grid";
+  $("#readerPlaceholderTitle").textContent = title;
+  $("#readerPlaceholderText").textContent = message;
+  $("#readerFallbackOpen").classList.toggle("hidden", !allowExternal || !currentPdfUrl);
+}
+
+async function disposePdfDocument() {
+  pdfRenderSerial++;
+  try { pdfRenderTask?.cancel(); } catch {}
+  pdfRenderTask = null;
+  const loadingTask = pdfLoadingTask;
+  pdfLoadingTask = null;
+  pdfDocument = null;
+  if (loadingTask?.destroy) {
+    try { await loadingTask.destroy(); } catch {}
+  }
+}
+
+function syncReaderControls() {
+  const pages = pdfDocument?.numPages || Number(currentPdf?.pages) || 1;
+  currentPage = Math.max(1, Math.min(pages, Number(currentPage) || 1));
+  $("#pageNumber").value = currentPage;
+  $("#pageNumber").max = pages;
+  $("#totalPages").textContent = pages;
+  $("#prevPage").disabled = !pdfDocument || currentPage <= 1;
+  $("#nextPage").disabled = !pdfDocument || currentPage >= pages;
+  $("#zoomOutBtn").disabled = !pdfDocument || pdfZoom <= 0.5;
+  $("#zoomInBtn").disabled = !pdfDocument || pdfZoom >= 3;
+  $("#zoomLevel").textContent = `${Math.round(pdfZoom * 100)}%`;
+}
+
+async function renderPdfPage(direction = 0) {
+  if (!pdfDocument || !currentPdf) return;
+  const serial = ++pdfRenderSerial;
+  try { pdfRenderTask?.cancel(); } catch {}
+  pdfRenderTask = null;
+  syncReaderControls();
+  const bookPage = $("#bookPage");
+  bookPage.classList.toggle("turning", Boolean(direction));
+  showReaderPlaceholder("Rendering page…", `Page ${currentPage} of ${pdfDocument.numPages}`);
+  try {
+    const page = await pdfDocument.getPage(currentPage);
+    if (serial !== pdfRenderSerial) return;
+    const stage = $("#bookStage");
+    const baseViewport = page.getViewport({scale:1});
+    const availableWidth = Math.max(280, stage.clientWidth - 28);
+    const availableHeight = Math.max(320, stage.clientHeight - 28);
+    const fitScale = Math.min(availableWidth / baseViewport.width, availableHeight / baseViewport.height);
+    const viewport = page.getViewport({scale:Math.max(0.2, fitScale * pdfZoom)});
+    const outputScale = Math.min(window.devicePixelRatio || 1, 2);
+    const canvas = $("#pdfCanvas");
+    const context = canvas.getContext("2d", {alpha:false});
+    canvas.width = Math.max(1, Math.floor(viewport.width * outputScale));
+    canvas.height = Math.max(1, Math.floor(viewport.height * outputScale));
+    canvas.style.width = `${Math.floor(viewport.width)}px`;
+    canvas.style.height = `${Math.floor(viewport.height)}px`;
+    bookPage.style.width = canvas.style.width;
+    bookPage.style.height = canvas.style.height;
+    pdfRenderTask = page.render({
+      canvasContext:context,
+      viewport,
+      transform:outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
+    });
+    await pdfRenderTask.promise;
+    if (serial !== pdfRenderSerial) return;
+    canvas.style.display = "block";
+    $("#readerPlaceholder").style.display = "none";
+    $("#readerFallbackOpen").classList.add("hidden");
+  } catch (error) {
+    if (error?.name !== "RenderingCancelledException" && serial === pdfRenderSerial) {
+      showReaderPlaceholder("Preview unavailable", "This document could not be rendered inside the app. You can still open the original PDF in your browser.", true);
+    }
+  } finally {
+    if (serial === pdfRenderSerial) bookPage.classList.remove("turning");
+  }
+}
+
+async function loadReaderPdf(url, loadToken) {
+  await disposePdfDocument();
+  const pdfjsLib = await loadPdfJs();
+  if (loadToken !== pdfLoadToken) return false;
+  showReaderPlaceholder("Loading document…", "Preparing the in-app PDF viewer.");
+  const loadingTask = pdfjsLib.getDocument({url:url, isEvalSupported:false});
+  pdfLoadingTask = loadingTask;
+  const loadedDocument = await loadingTask.promise;
+  if (loadToken !== pdfLoadToken) {
+    await loadingTask.destroy().catch(()=>{});
+    return false;
+  }
+  pdfDocument = loadedDocument;
+  pdfZoom = 1;
+  syncReaderControls();
+  if ($("#pdfModal").classList.contains("open")) await renderPdfPage();
+  return true;
+}
+
+function readerDownloadName() {
+  const raw = currentPdf?.fileName || currentPdf?.title || "Sanjay-Physics-document.pdf";
+  return /\.pdf$/i.test(raw) ? raw : `${raw}.pdf`;
+}
+
+async function downloadCurrentPdf(event) {
+  event.preventDefault();
+  if (!currentPdfUrl) return;
+  const link = event.currentTarget;
+  link.setAttribute("aria-busy", "true");
+  try {
+    const response = await fetch(currentPdfUrl);
+    if (!response.ok) throw new Error(`Download failed with ${response.status}`);
+    const downloadUrl = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement("a");
+    anchor.href = downloadUrl;
+    anchor.download = readerDownloadName();
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
+  } catch {
+    toast("This PDF could not be downloaded. Try opening the original document.", true);
+  } finally { link.removeAttribute("aria-busy"); }
 }
 
 async function selectReaderDocument(id, announceError = true) {
@@ -627,15 +761,14 @@ async function selectReaderDocument(id, announceError = true) {
     currentPage = 1;
     $("#readerTitle").textContent = nextPdf.title || nextPdf.documentLabel || "PDF document";
     $("#readerClass").textContent = `${nextPdf.className} • ${nextPdf.chapter}`;
-    $("#totalPages").textContent = nextPdf.pages || 1;
-    $("#pageNumber").max = nextPdf.pages || 1;
-    $("#readerOpenExternal").href = nextUrl;
-    $("#readerOpenExternal").classList.remove("hidden");
+    $("#readerDownload").href = nextUrl;
+    $("#readerDownload").download = readerDownloadName();
+    $("#readerDownload").classList.remove("hidden");
     $("#readerFallbackOpen").href = nextUrl;
     renderReaderDocumentTabs();
-    updateReader();
-    return true;
+    return await loadReaderPdf(nextUrl, loadToken);
   } catch {
+    showReaderPlaceholder("Preview unavailable", "This PDF file is unavailable on this device.", Boolean(currentPdfUrl));
     if (announceError) toast("This PDF file is unavailable on this device.", true);
     return false;
   }
@@ -648,30 +781,13 @@ async function openPdf(id) {
   if (!requested) return;
   readerDocuments = collection.filter(pdf => pdf.className === requested.className && pdf.chapter === requested.chapter);
   const opened = await selectReaderDocument(id);
-  if (opened) openModal("pdfModal");
+  if (opened) {
+    openModal("pdfModal");
+    requestAnimationFrame(()=>renderPdfPage());
+  }
 }
 
-function updateReader(direction = 0) {
-  if (!currentPdf) return;
-  const max = Number(currentPdf.pages) || 1;
-  currentPage = Math.max(1, Math.min(max, Number(currentPage) || 1));
-  $("#pageNumber").value = currentPage;
-  const page = $("#bookPage");
-  page.classList.add("turning");
-  setTimeout(() => {
-    const hasUrl = Boolean(currentPdfUrl);
-    const mobilePdfFallback = /Android|iPad|iPhone|iPod/i.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const canEmbed = hasUrl && !mobilePdfFallback;
-    $("#pdfViewer").style.display = canEmbed ? "block" : "none";
-    $("#readerPlaceholder").style.display = canEmbed ? "none" : "grid";
-    $("#readerPlaceholderTitle").textContent = mobilePdfFallback ? "Open this PDF in your browser" : "Preview unavailable";
-    $("#readerPlaceholderText").textContent = mobilePdfFallback ? "Mobile installed apps do not always include an embedded PDF viewer." : "Use the browser button to open or download this document.";
-    $("#readerFallbackOpen").classList.toggle("hidden", !hasUrl);
-    if (canEmbed) $("#pdfViewer").src = `${currentPdfUrl}${currentPdfUrl.includes("#") ? "&" : "#"}page=${currentPage}&view=FitH`;
-    else $("#pdfViewer").src = "about:blank";
-    page.classList.remove("turning");
-  }, direction ? 180 : 0);
-}
+function updateReader(direction = 0) { return renderPdfPage(direction); }
 
 function startQuiz() {
   activeQuiz = filtered(data.quizzes);
@@ -742,7 +858,32 @@ function exitReaderFullscreen() {
   if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
   else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
 }
-function closeModal(modal) { modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); document.body.style.overflow=""; if (modal.id === "videoModal") $("#videoFrame").innerHTML=""; if (modal.id === "pdfModal") { exitReaderFullscreen(); pdfLoadToken++; $("#pdfViewer").src="about:blank"; $("#readerOpenExternal").removeAttribute("href"); $("#readerOpenExternal").classList.add("hidden"); $("#readerFallbackOpen").removeAttribute("href"); if (activePdfObjectUrl) URL.revokeObjectURL(activePdfObjectUrl); activePdfObjectUrl=null; currentPdfUrl=""; currentPdf=null; readerDocuments=[]; $("#readerDocumentTabs").innerHTML=""; } }
+function closeModal(modal) {
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+  if (modal.id === "videoModal") $("#videoFrame").innerHTML="";
+  if (modal.id === "pdfModal") {
+    exitReaderFullscreen();
+    pdfLoadToken++;
+    disposePdfDocument();
+    const canvas = $("#pdfCanvas");
+    const context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = 1;
+    canvas.height = 1;
+    $("#bookPage").removeAttribute("style");
+    $("#readerDownload").removeAttribute("href");
+    $("#readerDownload").classList.add("hidden");
+    $("#readerFallbackOpen").removeAttribute("href");
+    if (activePdfObjectUrl) URL.revokeObjectURL(activePdfObjectUrl);
+    activePdfObjectUrl=null;
+    currentPdfUrl="";
+    currentPdf=null;
+    readerDocuments=[];
+    $("#readerDocumentTabs").innerHTML="";
+  }
+}
 
 async function hashPin(pin) {
   const bytes = new TextEncoder().encode(`sanjay-physics:${pin}`);
@@ -1088,10 +1229,19 @@ function initEvents() {
   $("#confirmDeleteBtn").addEventListener("click",confirmDeleteItem);
   $$("[data-admin-tab]").forEach(btn=>btn.addEventListener("click",()=>setAdminTab(btn.dataset.adminTab)));
   $("#startQuizBtn").addEventListener("click",startQuiz); $("#startMixedQuiz").addEventListener("click",()=>{$("#quiz").scrollIntoView({behavior:"smooth"});startQuiz();}); $("#exitQuizBtn").addEventListener("click",exitQuiz);
-  $("#prevPage").addEventListener("click",()=>{if(currentPage>1){currentPage--;updateReader(-1);}}); $("#nextPage").addEventListener("click",()=>{if(currentPdf&&currentPage<Number(currentPdf.pages)){currentPage++;updateReader(1);}}); $("#pageNumber").addEventListener("change",e=>{currentPage=Number(e.target.value);updateReader();});
+  $("#prevPage").addEventListener("click",()=>{if(pdfDocument&&currentPage>1){currentPage--;updateReader(-1);}});
+  $("#nextPage").addEventListener("click",()=>{if(pdfDocument&&currentPage<pdfDocument.numPages){currentPage++;updateReader(1);}});
+  $("#pageNumber").addEventListener("change",e=>{currentPage=Number(e.target.value);updateReader();});
+  $("#zoomOutBtn").addEventListener("click",()=>{if(!pdfDocument)return;pdfZoom=Math.max(0.5,pdfZoom-0.25);updateReader();});
+  $("#zoomInBtn").addEventListener("click",()=>{if(!pdfDocument)return;pdfZoom=Math.min(3,pdfZoom+0.25);updateReader();});
+  $("#zoomFitBtn").addEventListener("click",()=>{if(!pdfDocument)return;pdfZoom=1;updateReader();});
+  $("#readerDownload").addEventListener("click",downloadCurrentPdf);
   $("#readerFullscreenBtn").addEventListener("click",toggleReaderFullscreen);
-  document.addEventListener("fullscreenchange",syncReaderFullscreenButton);
-  document.addEventListener("webkitfullscreenchange",syncReaderFullscreenButton);
+  const syncFullscreenAndRender = () => { syncReaderFullscreenButton(); if(pdfDocument)requestAnimationFrame(()=>renderPdfPage()); };
+  document.addEventListener("fullscreenchange",syncFullscreenAndRender);
+  document.addEventListener("webkitfullscreenchange",syncFullscreenAndRender);
+  let readerResizeTimer;
+  window.addEventListener("resize",()=>{if(!pdfDocument||!$("#pdfModal").classList.contains("open"))return;clearTimeout(readerResizeTimer);readerResizeTimer=setTimeout(()=>renderPdfPage(),120);});
   $("#searchBtn").addEventListener("click",()=>{$("#pdfs").scrollIntoView({behavior:"smooth"});setTimeout(()=>$("#librarySearch").focus(),500);});
   $("#boardQuestionsBtn").addEventListener("click",()=>showBoardPage(true));
   $("#boardBackBtn").addEventListener("click",()=>showBoardPage(false));

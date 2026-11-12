@@ -37,7 +37,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
     caches: {
       open: async () => cache,
       match: async () => undefined,
-      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "unrelated-origin-cache"],
+      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "unrelated-origin-cache"],
       delete: async key => { deletedCaches.push(key); return true; }
     },
     self: {
@@ -65,8 +65,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   let activation;
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
-  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow"]);
-  assert.match(worker, /v63-canonical-startup/);
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup"]);
+  assert.match(worker, /v64-pdfjs-viewer/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -75,16 +75,35 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   assert.match(worker, /skipWaiting\(\)/);
 });
 
-test("reader includes Android fallback and routes question PDFs through one reader", () => {
+test("reader renders PDFs in-app on desktop and Android with real navigation, zoom and download controls", () => {
   const html = read("index.html");
   const script = read("script.js");
-  assert.match(html, /id="readerOpenExternal"[^>]*target="_blank"[^>]*rel="noopener"/);
+  const worker = read("sw.js");
+  assert.match(html, /id="pdfCanvas"[^>]*aria-label="PDF page"/);
+  assert.doesNotMatch(html, /<iframe id="pdfViewer"/);
+  assert.match(html, /id="zoomOutBtn"/);
+  assert.match(html, /id="zoomInBtn"/);
+  assert.match(html, /id="zoomFitBtn"/);
+  assert.match(html, /id="zoomLevel"/);
+  assert.match(html, /id="readerDownload"[^>]*download/);
   assert.match(html, /id="readerFallbackOpen"[^>]*target="_blank"[^>]*rel="noopener"/);
-  assert.match(script, /mobilePdfFallback = \/Android\|iPad\|iPhone\|iPod\/i\.test\(navigator\.userAgent/);
+  assert.match(script, /import\("\/vendor\/pdfjs\/pdf\.min\.mjs"\)/);
+  assert.match(script, /GlobalWorkerOptions\.workerSrc = "\/vendor\/pdfjs\/pdf\.worker\.min\.mjs"/);
+  assert.match(script, /getDocument\(\{url:/);
+  assert.match(script, /page\.render\(\{/);
+  assert.match(script, /devicePixelRatio/);
+  assert.match(script, /downloadCurrentPdf/);
+  assert.doesNotMatch(script, /Mobile installed apps do not always include an embedded PDF viewer/);
   assert.match(script, /media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main/);
-  assert.match(script, /new Blob\(\[bytes\],\{type:"application\/pdf"\}\)/);
   assert.match(script, /item\?\.blobKey\|\|item\?\.url\|\|item\?\.fallbackUrl\)openPdf\(item\.id\)/);
   assert.doesNotMatch(script, /else if\(item\?\.url\)window\.open/);
+  assert.match(worker, /"\/vendor\/pdfjs\/pdf\.min\.mjs"/);
+  assert.match(worker, /"\/vendor\/pdfjs\/pdf\.worker\.min\.mjs"/);
+  const vercel = JSON.parse(read("vercel.json"));
+  for (const source of ["/vendor/pdfjs/pdf.min.mjs", "/vendor/pdfjs/pdf.worker.min.mjs"]) {
+    const headers = vercel.headers.find(rule => rule.source === source)?.headers || [];
+    assert.ok(headers.some(header => header.key === "Content-Type" && /application\/javascript/.test(header.value)), `${source} must be served as JavaScript`);
+  }
 });
 
 test("manifest launches at the Vercel root without an index redirect", () => {

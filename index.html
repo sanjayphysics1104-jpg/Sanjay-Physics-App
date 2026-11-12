@@ -320,7 +320,7 @@
       <div class="reader-header">
         <div class="reader-heading"><small id="readerClass"></small><h2 id="readerTitle">Document reader</h2></div>
         <div class="reader-header-actions">
-          <a class="reader-open-external hidden" id="readerOpenExternal" target="_blank" rel="noopener" aria-label="Open PDF in browser">Open in browser</a>
+          <a class="reader-download hidden" id="readerDownload" href="#" download aria-label="Download PDF">Download PDF</a>
           <button class="reader-fullscreen-btn" id="readerFullscreenBtn" type="button" aria-label="Enter full screen" aria-pressed="false" title="Enter full screen">
             <svg class="fullscreen-enter-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
             <svg class="fullscreen-exit-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8H3V3M16 8h5V3M8 16H3v5M16 16h5v5"/></svg>
@@ -329,8 +329,11 @@
         </div>
       </div>
       <div class="reader-document-tabs" id="readerDocumentTabs" role="tablist" aria-label="Chapter PDF documents"></div>
-      <div class="book-stage"><div class="book-page" id="bookPage"><iframe id="pdfViewer" title="PDF document"></iframe><div class="reader-placeholder" id="readerPlaceholder"><span>▤</span><h3 id="readerPlaceholderTitle">Preview unavailable</h3><p id="readerPlaceholderText">Use the browser button to open or download this document.</p><a class="reader-fallback-open hidden" id="readerFallbackOpen" target="_blank" rel="noopener">Open PDF in browser</a></div></div></div>
-      <div class="reader-controls"><button id="prevPage">← Previous</button><label>Page <input id="pageNumber" type="number" min="1" value="1"> of <span id="totalPages">1</span></label><button id="nextPage">Next →</button></div>
+      <div class="book-stage" id="bookStage"><div class="book-page" id="bookPage"><canvas id="pdfCanvas" aria-label="PDF page"></canvas><div class="reader-placeholder" id="readerPlaceholder" role="status"><span>▤</span><h3 id="readerPlaceholderTitle">Loading document…</h3><p id="readerPlaceholderText">Preparing the in-app PDF viewer.</p><a class="reader-fallback-open hidden" id="readerFallbackOpen" target="_blank" rel="noopener">Open PDF in browser</a></div></div></div>
+      <div class="reader-controls">
+        <div class="reader-page-controls"><button id="prevPage" type="button">← Previous</button><label>Page <input id="pageNumber" type="number" min="1" value="1" inputmode="numeric"> of <span id="totalPages">1</span></label><button id="nextPage" type="button">Next →</button></div>
+        <div class="reader-zoom-controls" aria-label="PDF zoom controls"><button id="zoomOutBtn" type="button" aria-label="Zoom out">−</button><output id="zoomLevel" aria-live="polite">100%</output><button id="zoomInBtn" type="button" aria-label="Zoom in">+</button><button id="zoomFitBtn" type="button">Fit</button></div>
+      </div>
     </div>
   </div>
 

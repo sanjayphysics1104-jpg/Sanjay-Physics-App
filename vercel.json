@@ -37,6 +37,20 @@
       ]
     },
     {
+      "source": "/vendor/pdfjs/pdf.min.mjs",
+      "headers": [
+        {"key": "Content-Type", "value": "application/javascript; charset=utf-8"},
+        {"key": "Cache-Control", "value": "public, max-age=31536000, immutable"}
+      ]
+    },
+    {
+      "source": "/vendor/pdfjs/pdf.worker.min.mjs",
+      "headers": [
+        {"key": "Content-Type", "value": "application/javascript; charset=utf-8"},
+        {"key": "Cache-Control", "value": "public, max-age=31536000, immutable"}
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {"key": "X-Content-Type-Options", "value": "nosniff"},
