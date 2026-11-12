@@ -8,22 +8,14 @@
     "api/admin-session.js": {"maxDuration": 10},
     "api/questions.js": {"maxDuration": 10}
   },
-  "rewrites": [
+  "redirects": [
     {
       "source": "/assets/pdfs/:path*",
-      "destination": "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/assets/pdfs/:path*"
+      "destination": "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/assets/pdfs/:path*",
+      "permanent": false
     }
   ],
   "headers": [
-    {
-      "source": "/assets/pdfs/:path*",
-      "headers": [
-        {"key": "Content-Type", "value": "application/pdf"},
-        {"key": "Content-Disposition", "value": "inline"},
-        {"key": "X-Frame-Options", "value": "SAMEORIGIN"},
-        {"key": "Cache-Control", "value": "public, max-age=300, must-revalidate"}
-      ]
-    },
     {
       "source": "/sw.js",
       "headers": [

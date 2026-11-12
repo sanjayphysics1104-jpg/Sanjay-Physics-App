@@ -15,6 +15,7 @@ const BOARD_PDF_DB_NAME = "ssp_cbse_board_pdf_files_v1";
 const BOARD_PDF_STORE_NAME = "boardPdfFiles";
 const QUESTION_BANK_PDF_DB_NAME = "ssp_question_bank_pdf_files_v1";
 const QUESTION_BANK_PDF_STORE_NAME = "questionBankPdfFiles";
+const BUNDLED_PDF_MEDIA_BASE = "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main/";
 const cloneContentData = value => typeof structuredClone === "function"
   ? structuredClone(value)
   : JSON.parse(JSON.stringify(value));
@@ -582,17 +583,28 @@ function renderReaderDocumentTabs() {
 }
 
 async function resolveReaderPdfUrl(pdf, collection) {
+  const resolveBundledPdf = async source => {
+    const resolved = new URL(source, document.baseURI);
+    if (!resolved.pathname.startsWith("/assets/pdfs/")) return resolved.href;
+    const mediaUrl = `${BUNDLED_PDF_MEDIA_BASE}${resolved.pathname.slice(1)}${resolved.search}`;
+    const mobilePdfFallback = /Android|iPad|iPhone|iPod/i.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (mobilePdfFallback) return mediaUrl;
+    const response = await fetch(mediaUrl);
+    if (!response.ok) throw new Error(`PDF request failed with ${response.status}`);
+    const bytes = await response.blob();
+    return URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+  };
   if (!pdf.blobKey) {
     const source = pdf.url || pdf.fallbackUrl || "";
-    if (source) return new URL(source, document.baseURI).href;
+    if (source) return resolveBundledPdf(source);
     throw new Error("PDF URL unavailable");
   }
   try {
     const file = collection === "boardQuestions" ? await getBoardPdfFile(pdf.blobKey) : collection === "questionBanks" ? await getQuestionBankPdfFile(pdf.blobKey) : await getPdfFile(pdf.blobKey);
     if (file) return URL.createObjectURL(file);
-    if (pdf.fallbackUrl) return new URL(pdf.fallbackUrl, document.baseURI).href;
+    if (pdf.fallbackUrl) return resolveBundledPdf(pdf.fallbackUrl);
   } catch {
-    if (pdf.fallbackUrl) return new URL(pdf.fallbackUrl, document.baseURI).href;
+    if (pdf.fallbackUrl) return resolveBundledPdf(pdf.fallbackUrl);
   }
   throw new Error("PDF file unavailable");
 }
@@ -648,12 +660,12 @@ function updateReader(direction = 0) {
   page.classList.add("turning");
   setTimeout(() => {
     const hasUrl = Boolean(currentPdfUrl);
-    const isAndroid = /Android/i.test(navigator.userAgent || "");
-    const canEmbed = hasUrl && !isAndroid;
+    const mobilePdfFallback = /Android|iPad|iPhone|iPod/i.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const canEmbed = hasUrl && !mobilePdfFallback;
     $("#pdfViewer").style.display = canEmbed ? "block" : "none";
     $("#readerPlaceholder").style.display = canEmbed ? "none" : "grid";
-    $("#readerPlaceholderTitle").textContent = isAndroid ? "Open this PDF in your browser" : "Preview unavailable";
-    $("#readerPlaceholderText").textContent = isAndroid ? "Android installed apps do not always include an embedded PDF viewer." : "Use the browser button to open or download this document.";
+    $("#readerPlaceholderTitle").textContent = mobilePdfFallback ? "Open this PDF in your browser" : "Preview unavailable";
+    $("#readerPlaceholderText").textContent = mobilePdfFallback ? "Mobile installed apps do not always include an embedded PDF viewer." : "Use the browser button to open or download this document.";
     $("#readerFallbackOpen").classList.toggle("hidden", !hasUrl);
     if (canEmbed) $("#pdfViewer").src = `${currentPdfUrl}${currentPdfUrl.includes("#") ? "&" : "#"}page=${currentPage}&view=FitH`;
     else $("#pdfViewer").src = "about:blank";

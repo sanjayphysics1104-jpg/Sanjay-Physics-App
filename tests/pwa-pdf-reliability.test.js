@@ -73,7 +73,9 @@ test("reader includes Android fallback and routes question PDFs through one read
   const script = read("script.js");
   assert.match(html, /id="readerOpenExternal"[^>]*target="_blank"[^>]*rel="noopener"/);
   assert.match(html, /id="readerFallbackOpen"[^>]*target="_blank"[^>]*rel="noopener"/);
-  assert.match(script, /const isAndroid = \/Android\/i\.test\(navigator\.userAgent/);
+  assert.match(script, /mobilePdfFallback = \/Android\|iPad\|iPhone\|iPod\/i\.test\(navigator\.userAgent/);
+  assert.match(script, /media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main/);
+  assert.match(script, /new Blob\(\[bytes\],\{type:"application\/pdf"\}\)/);
   assert.match(script, /item\?\.blobKey\|\|item\?\.url\|\|item\?\.fallbackUrl\)openPdf\(item\.id\)/);
   assert.doesNotMatch(script, /else if\(item\?\.url\)window\.open/);
 });
@@ -128,11 +130,8 @@ test("all preserved PDF files retain valid PDF signatures", () => {
 
 test("Vercel serves Git LFS PDFs through the materialized media endpoint", () => {
   const vercel = JSON.parse(read("vercel.json"));
-  const pdfRewrite = vercel.rewrites?.find(rule => rule.source === "/assets/pdfs/:path*");
-  assert.ok(pdfRewrite, "bundled PDF rewrite is missing");
-  assert.match(pdfRewrite.destination, /^https:\/\/media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main\/assets\/pdfs\/:path\*$/);
-  const pdfHeaders = vercel.headers?.find(rule => rule.source === "/assets/pdfs/:path*")?.headers || [];
-  assert.ok(pdfHeaders.some(header => header.key === "Content-Type" && header.value === "application/pdf"));
-  assert.ok(pdfHeaders.some(header => header.key === "Content-Disposition" && header.value === "inline"));
-  assert.ok(pdfHeaders.some(header => header.key === "X-Frame-Options" && header.value === "SAMEORIGIN"));
+  const pdfRedirect = vercel.redirects?.find(rule => rule.source === "/assets/pdfs/:path*");
+  assert.ok(pdfRedirect, "bundled PDF redirect is missing");
+  assert.equal(pdfRedirect.permanent, false);
+  assert.match(pdfRedirect.destination, /^https:\/\/media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main\/assets\/pdfs\/:path\*$/);
 });
