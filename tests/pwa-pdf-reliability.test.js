@@ -125,3 +125,14 @@ test("all preserved PDF files retain valid PDF signatures", () => {
     assert.match(bytes.subarray(Math.max(0, bytes.length - 2048)).toString("latin1"), /%%EOF/, path.relative(root, file));
   }
 });
+
+test("Vercel serves Git LFS PDFs through the materialized media endpoint", () => {
+  const vercel = JSON.parse(read("vercel.json"));
+  const pdfRewrite = vercel.rewrites?.find(rule => rule.source === "/assets/pdfs/:path*");
+  assert.ok(pdfRewrite, "bundled PDF rewrite is missing");
+  assert.match(pdfRewrite.destination, /^https:\/\/media\.githubusercontent\.com\/media\/sanjayphysics1104-jpg\/Sanjay-Physics-App\/main\/assets\/pdfs\/:path\*$/);
+  const pdfHeaders = vercel.headers?.find(rule => rule.source === "/assets/pdfs/:path*")?.headers || [];
+  assert.ok(pdfHeaders.some(header => header.key === "Content-Type" && header.value === "application/pdf"));
+  assert.ok(pdfHeaders.some(header => header.key === "Content-Disposition" && header.value === "inline"));
+  assert.ok(pdfHeaders.some(header => header.key === "X-Frame-Options" && header.value === "SAMEORIGIN"));
+});
