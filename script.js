@@ -1103,58 +1103,53 @@ function initEvents() {
 
 function initPwa() {
   const installButton = $("#installBtn");
-  const installConfirmButton = $("#installConfirmBtn");
   const standaloneQuery = window.matchMedia?.("(display-mode: standalone)");
   const isStandalone = () => Boolean(standaloneQuery?.matches || navigator.standalone === true);
-  const syncInstallButton = () => installButton.classList.toggle("hidden", isStandalone());
-  const syncInstallDialog = () => {
-    if(isStandalone()) {
-      $("#installAvailability").textContent = "Sanjay Physics is already installed on this device.";
-      installConfirmButton.textContent = "Installed";
-      installConfirmButton.disabled = true;
-      return;
-    }
-    installConfirmButton.textContent = "Install";
-    installConfirmButton.disabled = false;
-    $("#installAvailability").textContent = deferredInstallPrompt
-      ? "Your browser is ready. Select Install below to open the secure native installation prompt."
-      : "If the native prompt is not available yet, select Install and follow the browser steps below.";
+  const syncInstallButton = () => {
+    installButton.classList.toggle("hidden", isStandalone());
+    installButton.textContent = deferredInstallPrompt ? "Install App" : "Install Help";
+    installButton.setAttribute("aria-label", deferredInstallPrompt ? "Install Sanjay Physics" : "Show installation instructions");
   };
-  const showInstallHelp = () => {
+  const showInstallHelp = reason => {
     const userAgent = navigator.userAgent || "";
     const isIos = /iPad|iPhone|iPod/i.test(userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const isAndroid = /Android/i.test(userAgent);
+    const isFirefox = /Firefox|FxiOS/i.test(userAgent);
+    const isEdge = /Edg\//i.test(userAgent);
+    const isChrome = /Chrome|CriOS/i.test(userAgent) && !isEdge;
     const steps = isIos
       ? ["Open this site in Safari.", "Tap the Share button.", "Choose ‘Add to Home Screen’, then tap ‘Add’."]
-      : isAndroid
-        ? ["Open the browser menu (⋮).", "Choose ‘Install app’ or ‘Add to Home screen’.", "Confirm Install."]
-        : ["Open this site in Google Chrome or Microsoft Edge.", "Select the install icon in the address bar, or open the browser menu and choose Apps.", "Choose ‘Install Sanjay Physics’ and confirm."];
-    $("#installHelpText").textContent = isIos ? "Apple devices install web apps from the Share menu." : isAndroid ? "Android browsers expose installation from their main menu." : "Chrome and Microsoft Edge support standalone app installation on desktop.";
+      : isAndroid && isFirefox
+        ? ["Open the Firefox menu (⋮).", "Choose ‘Install’ or ‘Add to Home screen’.", "Confirm the shortcut or installation."]
+        : isAndroid
+          ? ["Open the browser menu (⋮).", "Choose ‘Install app’ or ‘Add to Home screen’.", "Confirm Install."]
+          : isFirefox
+            ? ["Firefox desktop does not provide native PWA installation.", "Open this site in Google Chrome or Microsoft Edge.", "Use the install icon in the address bar or Browser menu → Apps → Install Sanjay Physics."]
+            : ["Open the browser menu.", `Choose ${isEdge ? "Apps → Install Sanjay Physics" : isChrome ? "Cast, save and share → Install Sanjay Physics" : "the Install app option"}.`, "Confirm Install in the browser prompt."];
+    $("#installHelpText").textContent = isIos ? "Apple devices install web apps from the Share menu." : isAndroid ? "Use your mobile browser menu to install this app." : isFirefox ? "Use Chrome or Edge for a native Windows installation." : "Use the browser's own installation menu when its automatic prompt is unavailable.";
+    $("#installAvailability").textContent = reason || "The native install prompt is not available in this browser session.";
     $("#installSteps").innerHTML = steps.map(step=>`<li>${escapeHTML(step)}</li>`).join("");
-    syncInstallDialog();
     openModal("installModal");
-    setTimeout(()=>installConfirmButton.focus(),0);
+    setTimeout(()=>$("#installModal .install-help-close")?.focus(),0);
   };
   const requestInstall = async () => {
-    if(isStandalone()){toast("Sanjay Physics is already installed");syncInstallDialog();return;}
+    if(isStandalone()){toast("Sanjay Physics is already installed");syncInstallButton();return;}
     if(!deferredInstallPrompt){
-      toast("Use the browser steps shown above to install the app.");
-      $("#installSteps").scrollIntoView({behavior:"smooth",block:"center"});
+      showInstallHelp("Chrome/Edge did not expose a native install prompt. This can happen after dismissal, when the app is already installed, or when the current browser does not support PWA installation.");
       return;
     }
     const promptEvent = deferredInstallPrompt;
     deferredInstallPrompt = null;
-    installConfirmButton.disabled = true;
-    installConfirmButton.textContent = "Opening…";
-    closeModal($("#installModal"));
+    installButton.disabled = true;
+    installButton.textContent = "Opening…";
     try {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
-      if(choice.outcome === "dismissed") showInstallHelp();
+      if(choice.outcome === "dismissed") showInstallHelp("Installation was dismissed. To try again now, use the browser installation menu below; Chrome may not show the automatic prompt again until a later visit.");
     } catch {
-      showInstallHelp();
-      toast("The native install prompt could not open. Use the browser steps shown here.",true);
+      showInstallHelp("The browser could not open its native prompt. Use the browser installation menu below.");
     }
+    finally { installButton.disabled = false; syncInstallButton(); }
   };
 
   syncInstallButton();
@@ -1165,10 +1160,9 @@ function initPwa() {
       .then(registration=>registration.update().catch(()=>{}))
       .catch(()=>toast("Offline installation could not be prepared. Reload the page and try again.",true));
   }
-  window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;syncInstallButton();syncInstallDialog();});
-  installButton.addEventListener("click",()=>{if(isStandalone())toast("Sanjay Physics is already installed");else showInstallHelp();});
-  installConfirmButton.addEventListener("click",requestInstall);
-  window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;syncInstallButton();syncInstallDialog();closeModal($("#installModal"));toast("Sanjay Physics installed successfully");});
+  window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;syncInstallButton();});
+  installButton.addEventListener("click",requestInstall);
+  window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;syncInstallButton();closeModal($("#installModal"));toast("Sanjay Physics installed successfully");});
 }
 
 function init(){ $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();validateAdminSession();syncQuestionDeletions();showBoardPage(location.hash === "#cbse-board-questions",false); }

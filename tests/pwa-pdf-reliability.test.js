@@ -61,7 +61,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   const navigation = dispatchFetch({method:"GET",url:"https://physics.example/",headers:headers(false),mode:"navigate"});
   assert.equal(typeof navigation?.then, "function");
   assert.equal(await navigation, response);
-  assert.match(worker, /sanjay-physics-v61-install-dialog-action/);
+  assert.match(worker, /sanjay-physics-v62-native-install-flow/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
   assert.match(worker, /Promise\.allSettled\(OFFLINE_CORPUS/);
   assert.match(worker, /clients\.claim\(\)/);
@@ -97,7 +97,8 @@ test("install control stays discoverable and provides platform-specific fallback
   const vercel = JSON.parse(read("vercel.json"));
   assert.match(html, /class="install-btn" id="installBtn"/);
   assert.match(html, /id="installModal"/);
-  assert.match(html, /id="installConfirmBtn"[^>]*>Install<\/button>/);
+  assert.doesNotMatch(html, /id="installConfirmBtn"/);
+  assert.match(html, /class="secondary-btn install-help-close"[^>]*>Close<\/button>/);
   assert.match(html, /id="installAvailability"[^>]*role="status"/);
   assert.match(script, /beforeinstallprompt/);
   assert.match(script, /display-mode: standalone/);
@@ -106,7 +107,8 @@ test("install control stays discoverable and provides platform-specific fallback
   assert.match(script, /Google Chrome or Microsoft Edge/);
   assert.match(script, /\["localhost","127\.0\.0\.1"\]/);
   assert.match(script, /register\("\/sw\.js",\{scope:"\/",updateViaCache:"none"\}\)/);
-  assert.match(script, /installConfirmButton\.addEventListener\("click",requestInstall\)/);
+  assert.match(script, /installButton\.addEventListener\("click",requestInstall\)/);
+  assert.match(script, /installButton\.textContent = deferredInstallPrompt \? "Install App" : "Install Help"/);
   assert.match(script, /await promptEvent\.prompt\(\)/);
   assert.match(script, /await promptEvent\.userChoice/);
   const swHeaders = vercel.headers.find(rule => rule.source === "/sw.js")?.headers || [];
