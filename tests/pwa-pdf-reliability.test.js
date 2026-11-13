@@ -65,8 +65,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   let activation;
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
-  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer"]);
-  assert.match(worker, /v69-full-screen-navigation/);
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "sanjay-physics-v69-full-screen-navigation"]);
+  assert.match(worker, /v70-critical-ai-pdf-fix/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -79,6 +79,7 @@ test("reader renders PDFs in-app on desktop and Android with real navigation, zo
   const html = read("index.html");
   const script = read("script.js");
   const worker = read("sw.js");
+  const apiConfig = read("api-config.js");
   assert.match(html, /id="pdfCanvas"[^>]*aria-label="PDF page"/);
   assert.doesNotMatch(html, /<iframe id="pdfViewer"/);
   assert.match(html, /id="zoomOutBtn"/);
@@ -87,9 +88,13 @@ test("reader renders PDFs in-app on desktop and Android with real navigation, zo
   assert.match(html, /id="zoomLevel"/);
   assert.match(html, /id="readerDownload"[^>]*download/);
   assert.match(html, /id="readerFallbackOpen"[^>]*target="_blank"[^>]*rel="noopener"/);
-  assert.match(script, /import\("\/vendor\/pdfjs\/pdf\.min\.mjs"\)/);
-  assert.match(script, /GlobalWorkerOptions\.workerSrc = "\/vendor\/pdfjs\/pdf\.worker\.min\.mjs"/);
-  assert.match(script, /new Uint8Array\(await response\.arrayBuffer\(\)\)/);
+  assert.match(script, /new URL\("vendor\/pdfjs\/pdf\.min\.mjs", document\.baseURI\)\.href/);
+  assert.match(script, /new URL\("vendor\/pdfjs\/pdf\.worker\.min\.mjs", document\.baseURI\)\.href/);
+  assert.match(script, /function pdfSourceCandidates\(/);
+  assert.match(script, /header\.includes\("%PDF-"\)/);
+  assert.match(script, /filtered\(data\.pdfs\)\.filter\(hasPdfSource\)/);
+  assert.match(apiConfig, /window\.location\.protocol === "file:"/);
+  assert.match(apiConfig, /https:\/\/sanjay-physics-app\.vercel\.app/);
   assert.match(script, /getDocument\(\{data:documentBytes/);
   assert.match(script, /page\.render\(\{/);
   assert.match(script, /devicePixelRatio/);

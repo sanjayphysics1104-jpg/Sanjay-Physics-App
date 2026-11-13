@@ -327,6 +327,7 @@ function saveData() {
 }
 
 function filtered(collection) { return collection.filter(item => item.className === activeClass); }
+function hasPdfSource(item) { return Boolean(item?.blobKey || item?.url || item?.fallbackUrl); }
 
 function renderAll() {
   renderVideos(); renderPdfs(); renderQuestionBanks(); renderQuizAdmin(); renderBoardQuestions(); renderBoardAdmin(); updateStats();
@@ -414,7 +415,7 @@ function renderVideos() {
 function renderPdfs() {
   const search = $("#librarySearch").value.trim().toLowerCase();
   const chapter = $("#pdfChapterFilter").value;
-  const base = filtered(data.pdfs);
+  const base = filtered(data.pdfs).filter(hasPdfSource);
   const chapters = uniqueChapters(base);
   updateChapterSuggestions();
   const select = $("#pdfChapterFilter");
@@ -664,14 +665,7 @@ function renderReaderDocumentTabs() {
 }
 
 async function resolveReaderPdfUrl(pdf, collection) {
-  const resolveBundledPdf = async source => {
-    const resolved = new URL(source, document.baseURI);
-    if (resolved.pathname.startsWith("/assets/pdfs/") && !["localhost","127.0.0.1"].includes(location.hostname)) {
-      const mediaPath = resolved.pathname.slice("/assets/pdfs/".length);
-      return new URL(`/pdf-media/${mediaPath}${resolved.search}`, document.baseURI).href;
-    }
-    return resolved.href;
-  };
+  const resolveBundledPdf = source => new URL(source, document.baseURI).href;
   if (!pdf.blobKey) {
     const source = pdf.url || pdf.fallbackUrl || "";
     if (source) return resolveBundledPdf(source);
@@ -687,10 +681,44 @@ async function resolveReaderPdfUrl(pdf, collection) {
   throw new Error("PDF file unavailable");
 }
 
+function pdfSourceCandidates(source) {
+  const resolved = new URL(source, document.baseURI);
+  const candidates = [resolved.href];
+  const assetMarker = "/assets/pdfs/";
+  const assetIndex = resolved.pathname.indexOf(assetMarker);
+  if (resolved.origin === location.origin && assetIndex >= 0) {
+    const mediaPath = resolved.pathname.slice(assetIndex + assetMarker.length);
+    candidates.push(new URL(`/pdf-media/${mediaPath}${resolved.search}`, document.baseURI).href);
+  } else if (resolved.origin === location.origin && resolved.pathname.startsWith("/pdf-media/")) {
+    const assetPath = resolved.pathname.slice("/pdf-media/".length);
+    candidates.push(new URL(`/assets/pdfs/${assetPath}${resolved.search}`, document.baseURI).href);
+  }
+  return [...new Set(candidates)];
+}
+
+async function fetchPdfBytes(source) {
+  const failures = [];
+  for (const candidate of pdfSourceCandidates(source)) {
+    try {
+      const response = await fetch(candidate);
+      if (!response.ok) throw new Error(`request failed with ${response.status}`);
+      const documentBytes = new Uint8Array(await response.arrayBuffer());
+      const header = new TextDecoder("latin1").decode(documentBytes.subarray(0, Math.min(1024, documentBytes.length)));
+      if (!header.includes("%PDF-")) throw new Error("response was not a PDF");
+      return {documentBytes, sourceUrl:candidate};
+    } catch (error) {
+      failures.push(`${candidate}: ${error?.message || error}`);
+    }
+  }
+  throw new Error(`PDF unavailable (${failures.join("; ")})`);
+}
+
 function loadPdfJs() {
   if (!pdfJsPromise) {
-    pdfJsPromise = import("/vendor/pdfjs/pdf.min.mjs").then(pdfjsLib => {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.mjs";
+    const pdfJsUrl = new URL("vendor/pdfjs/pdf.min.mjs", document.baseURI).href;
+    const pdfWorkerUrl = new URL("vendor/pdfjs/pdf.worker.min.mjs", document.baseURI).href;
+    pdfJsPromise = import(pdfJsUrl).then(pdfjsLib => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
       return pdfjsLib;
     });
   }
@@ -781,12 +809,11 @@ async function loadReaderPdf(url, loadToken) {
   const pdfjsLib = await loadPdfJs();
   if (loadToken !== pdfLoadToken) return false;
   showReaderPlaceholder("Loading document…", "Preparing the in-app PDF viewer.");
-  // Fetch through the app's media route, then transfer verified bytes to the
-  // worker. PDF.js URL transport can remain pending behind external proxies.
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`PDF request failed with ${response.status}`);
-  const documentBytes = new Uint8Array(await response.arrayBuffer());
+  const {documentBytes, sourceUrl} = await fetchPdfBytes(url);
   if (loadToken !== pdfLoadToken) return false;
+  currentPdfUrl = sourceUrl;
+  $("#readerDownload").href = sourceUrl;
+  $("#readerFallbackOpen").href = sourceUrl;
   const loadingTask = pdfjsLib.getDocument({data:documentBytes, isEvalSupported:false});
   pdfLoadingTask = loadingTask;
   const loadedDocument = await loadingTask.promise;
@@ -863,7 +890,7 @@ async function openPdf(id) {
   const collection = data[currentPdfCollection];
   const requested = collection.find(pdf => pdf.id === id);
   if (!requested) return;
-  readerDocuments = collection.filter(pdf => pdf.className === requested.className && pdf.chapter === requested.chapter);
+  readerDocuments = collection.filter(pdf => pdf.className === requested.className && pdf.chapter === requested.chapter && hasPdfSource(pdf));
   const opened = await selectReaderDocument(id);
   if (opened) {
     openModal("pdfModal");
