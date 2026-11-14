@@ -37,7 +37,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
     caches: {
       open: async () => cache,
       match: async () => undefined,
-      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "sanjay-physics-v69-full-screen-navigation", "unrelated-origin-cache"],
+      keys: async () => ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "sanjay-physics-v69-full-screen-navigation", "sanjay-physics-v70-logout-messages", "sanjay-physics-v71-exit-pdf-protection", "sanjay-physics-v72-dynamic-side-menu", "sanjay-physics-v73-desktop-pdf-exit", "sanjay-physics-v74-pdf-device-fix", "unrelated-origin-cache"],
       delete: async key => { deletedCaches.push(key); return true; }
     },
     self: {
@@ -65,8 +65,8 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   let activation;
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
-  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "sanjay-physics-v69-full-screen-navigation"]);
-  assert.match(worker, /v70-critical-ai-pdf-fix/);
+  assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "sanjay-physics-v69-full-screen-navigation", "sanjay-physics-v70-logout-messages", "sanjay-physics-v71-exit-pdf-protection", "sanjay-physics-v72-dynamic-side-menu", "sanjay-physics-v73-desktop-pdf-exit", "sanjay-physics-v74-pdf-device-fix"]);
+  assert.match(worker, /v76-critical-ai-file-pdf-preview/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -75,30 +75,58 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   assert.match(worker, /skipWaiting\(\)/);
 });
 
-test("reader renders PDFs in-app on desktop and Android with real navigation, zoom and download controls", () => {
+test("reader renders PDFs in-app, resolves desktop paths with fallback, and downloads verified bytes", () => {
   const html = read("index.html");
   const script = read("script.js");
   const worker = read("sw.js");
   const apiConfig = read("api-config.js");
-  assert.match(html, /id="pdfCanvas"[^>]*aria-label="PDF page"/);
+  assert.match(html, /id="pdfPages"[^>]*role="document"[^>]*aria-label="PDF pages"/);
   assert.doesNotMatch(html, /<iframe id="pdfViewer"/);
   assert.match(html, /id="zoomOutBtn"/);
   assert.match(html, /id="zoomInBtn"/);
   assert.match(html, /id="zoomFitBtn"/);
   assert.match(html, /id="zoomLevel"/);
-  assert.match(html, /id="readerDownload"[^>]*download/);
-  assert.match(html, /id="readerFallbackOpen"[^>]*target="_blank"[^>]*rel="noopener"/);
+  assert.match(html, /id="readerDownload"[^>]*>↓ Download PDF<\/button>/);
+  assert.doesNotMatch(html, /id="readerFallbackOpen"/);
+  assert.match(html, /id="pdfProtectionShield"/);
   assert.match(script, /new URL\("vendor\/pdfjs\/pdf\.min\.mjs", document\.baseURI\)\.href/);
   assert.match(script, /new URL\("vendor\/pdfjs\/pdf\.worker\.min\.mjs", document\.baseURI\)\.href/);
-  assert.match(script, /function pdfSourceCandidates\(/);
-  assert.match(script, /header\.includes\("%PDF-"\)/);
+  assert.match(script, /import\(pdfJsUrl\)/);
+  assert.match(script, /GlobalWorkerOptions\.workerSrc = pdfWorkerUrl/);
+  assert.match(script, /if \(location\.protocol === "file:"\)/);
+  assert.match(script, /nativeViewer\.className = "native-file-pdf-viewer"/);
+  assert.match(script, /nativeViewer\.src = url/);
+  assert.match(script, /currentPdfDownloadUrl\?\.startsWith\("blob:"\)/);
+  assert.match(read("style.css"), /\.native-file-pdf-viewer/);
+  assert.match(script, /function hasPdfSource\(item\)/);
   assert.match(script, /filtered\(data\.pdfs\)\.filter\(hasPdfSource\)/);
+  assert.match(script, /filtered\(data\.questionBanks\)\.filter\(hasPdfSource\)/);
+  assert.match(script, /pdf\.chapter === requested\.chapter && hasPdfSource\(pdf\)/);
+  assert.match(script, /function pdfSourceCandidates\(/);
+  assert.match(script, /resolved\.pathname\.indexOf\(assetMarker\)/);
+  assert.match(script, /candidates\.push\(new URL\(`\/pdf-media\//);
+  assert.match(script, /header\.includes\("%PDF-"\)/);
+  assert.match(script, /new Uint8Array\(await response\.arrayBuffer\(\)\)/);
   assert.match(apiConfig, /window\.location\.protocol === "file:"/);
   assert.match(apiConfig, /https:\/\/sanjay-physics-app\.vercel\.app/);
   assert.match(script, /getDocument\(\{data:documentBytes/);
   assert.match(script, /page\.render\(\{/);
   assert.match(script, /devicePixelRatio/);
-  assert.match(script, /downloadCurrentPdf/);
+  assert.match(script, /function buildPdfPageFrames\(/);
+  assert.match(script, /new IntersectionObserver\(/);
+  assert.match(script, /function syncCurrentPageFromScroll\(/);
+  assert.match(script, /function goToPdfPage\(/);
+  assert.match(script, /function refreshPdfPageRendering\(/);
+  assert.match(script, /canvas\.dataset\.rendered = "true"/);
+  assert.match(script, /function downloadCurrentPdf\(/);
+  assert.match(script, /new Blob\(\[documentBytes\], \{type:"application\/pdf"\}\)/);
+  assert.match(script, /link\.download = readerDownloadName\(\)/);
+  assert.doesNotMatch(script, /!\["localhost","127\.0\.0\.1"\]\.includes\(location\.hostname\)/);
+  assert.match(script, /addEventListener\("contextmenu"/);
+  assert.match(script, /addEventListener\("copy"/);
+  assert.match(script, /addEventListener\("selectstart"/);
+  assert.match(script, /addEventListener\("beforeprint"/);
+  assert.match(script, /event\.key==="PrintScreen"/);
   assert.doesNotMatch(script, /Mobile installed apps do not always include an embedded PDF viewer/);
   assert.match(script, /item\?\.blobKey\|\|item\?\.url\|\|item\?\.fallbackUrl\)openPdf\(item\.id\)/);
   assert.doesNotMatch(script, /else if\(item\?\.url\)window\.open/);
@@ -162,7 +190,7 @@ test("all preserved PDF files retain valid PDF signatures", () => {
     }
   };
   walk(pdfRoot);
-  assert.equal(files.length, 97);
+  assert.equal(files.length, 105);
   for (const file of files) {
     const bytes = fs.readFileSync(file);
     assert.equal(bytes.subarray(0, 5).toString(), "%PDF-", path.relative(root, file));

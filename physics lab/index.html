@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive horizontal projectile motion simulator for exploring time of flight, range, and vertical velocity.">
+  <meta name="theme-color" content="#08111f">
+  <title>Interactive Mechanical Lab</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308111f'/%3E%3Cpath d='M13 47h39M18 47V16h11v31' stroke='%2369e5c2' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M28 18c14 2 20 10 23 24' fill='none' stroke='%23ffcb67' stroke-width='4' stroke-linecap='round' stroke-dasharray='2 7'/%3E%3Ccircle cx='28' cy='18' r='5' fill='%23ffcb67'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true"><span></span></div>
+      <div>
+        <p class="eyebrow">Live Experiment</p>
+        <h1>Interactive Mechanical Lab</h1>
+        <p class="creator-credit">Made by <strong>Sanjay Singh</strong></p>
+      </div>
+      <div class="formula-chip" aria-label="Range equals initial velocity multiplied by time">
+        <span>R</span> = u × t
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="Projectile simulator workspace">
+      <div class="simulation-card">
+        <div class="simulation-heading">
+          <div>
+            <p class="section-kicker">Projectile simulator</p>
+            <h2>Horizontal Projectile Motion — Launch from the Tower</h2>
+          </div>
+          <div class="status-pill" id="statusPill"><span></span><strong id="statusText">Ready</strong></div>
+        </div>
+
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="simulationCanvas" aria-label="Animated diagram of a particle projected horizontally from a tower"></canvas>
+          <div class="canvas-hint"><span class="hint-dot"></span> Dashed line shows the full predicted path</div>
+        </div>
+
+        <div class="timeline-wrap">
+          <div class="timeline-labels">
+            <span>Elapsed time</span>
+            <output id="elapsedOutput">0.00 s</output>
+          </div>
+          <div class="timeline" aria-hidden="true"><div id="timelineFill"></div></div>
+        </div>
+
+        <div class="transport" aria-label="Animation controls">
+          <button class="btn btn-primary" id="startBtn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            Start
+          </button>
+          <button class="btn" id="pauseBtn" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>
+            Pause
+          </button>
+          <button class="btn" id="resetBtn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a7 7 0 1 1-6.65 4.82L3 12.17V6h6.17L6.8 8.37A9 9 0 1 0 12 3z"/></svg>
+            Reset
+          </button>
+          <button class="btn" id="replayBtn" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7zM3 5h2v14H3z"/></svg>
+            Replay
+          </button>
+        </div>
+      </div>
+
+      <aside class="side-panel" aria-label="Experiment controls and calculations">
+        <section class="control-card">
+          <div class="panel-title-row">
+            <div>
+              <p class="section-kicker">Change the variables</p>
+              <h2>Experiment setup</h2>
+            </div>
+            <button class="mini-reset" id="defaultsBtn" type="button">Defaults</button>
+          </div>
+
+          <div class="variable-control">
+            <div class="control-label"><label for="velocityInput">Initial velocity <i>u</i></label><output id="velocityValue">2.0 m/s</output></div>
+            <input id="velocityInput" type="range" min="0.5" max="12" step="0.1" value="2" aria-describedby="velocityBounds">
+            <div class="range-bounds" id="velocityBounds"><span>0.5</span><span>12 m/s</span></div>
+          </div>
+
+          <div class="variable-control">
+            <div class="control-label"><label for="heightInput">Tower height <i>h</i></label><output id="heightValue">10.0 m</output></div>
+            <input id="heightInput" type="range" min="2" max="30" step="0.5" value="10" aria-describedby="heightBounds">
+            <div class="range-bounds" id="heightBounds"><span>2</span><span>30 m</span></div>
+          </div>
+
+          <div class="variable-control">
+            <div class="control-label"><label for="gravityInput">Gravity <i>g</i></label><output id="gravityValue">9.8 m/s²</output></div>
+            <input id="gravityInput" type="range" min="1.6" max="15" step="0.1" value="9.8" aria-describedby="gravityBounds">
+            <div class="range-bounds" id="gravityBounds"><span>1.6</span><span>15 m/s²</span></div>
+          </div>
+        </section>
+
+        <section class="results-card" aria-live="polite">
+          <div class="results-heading">
+            <div>
+              <p class="section-kicker">Calculated instantly</p>
+              <h2>Results</h2>
+            </div>
+            <span class="live-badge">LIVE</span>
+          </div>
+          <div class="result-grid">
+            <div class="result-item"><span>Time of flight</span><strong id="timeResult">1.43 <small>s</small></strong></div>
+            <div class="result-item accent"><span>Horizontal range</span><strong id="rangeResult">2.86 <small>m</small></strong></div>
+            <div class="result-item"><span>Final vertical speed</span><strong id="verticalResult">14.00 <small>m/s</small></strong></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="learning-panel" aria-label="Worked solution">
+      <div class="learning-intro">
+        <p class="section-kicker">Worked solution</p>
+        <h2>From the question to the answer</h2>
+        <p>Horizontal and vertical motion happen independently. Gravity changes only the particle’s vertical velocity.</p>
+      </div>
+
+      <div class="given-block">
+        <h3><span>01</span> Given</h3>
+        <dl>
+          <div><dt>Horizontal velocity, <i>u</i></dt><dd id="givenU">2.0 m/s</dd></div>
+          <div><dt>Tower height, <i>h</i></dt><dd id="givenH">10.0 m</dd></div>
+          <div><dt>Gravity, <i>g</i></dt><dd id="givenG">9.8 m/s²</dd></div>
+          <div><dt>Initial vertical velocity, <i>u<sub>y</sub></i></dt><dd>0 m/s</dd></div>
+        </dl>
+      </div>
+
+      <div class="equation-block">
+        <h3><span>02</span> Equations</h3>
+        <div class="equation"><span>Time</span><strong>t = √<span class="radicand">2h / g</span></strong><em id="timeWorking">= √(20 / 9.8) = 1.43 s</em></div>
+        <div class="equation"><span>Range</span><strong>R = u × t</strong><em id="rangeWorking">= 2.0 × 1.43 = 2.86 m</em></div>
+        <div class="equation"><span>Vertical speed</span><strong>v<sub>y</sub> = g × t</strong><em id="verticalWorking">= 9.8 × 1.43 = 14.00 m/s</em></div>
+      </div>
+
+      <div class="answer-block">
+        <span class="answer-label">Answer</span>
+        <p>The particle lands</p>
+        <strong><span id="answerValue">2.86</span> m</strong>
+        <p>from the base of the tower.</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Physics Lab · Horizontal projection · Air resistance neglected</p>
+      <p>Tip: change one variable at a time and compare the trajectory.</p>
+    </footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

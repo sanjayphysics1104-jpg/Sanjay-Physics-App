@@ -40,7 +40,7 @@ test("every major learning section has a functional close control", () => {
   assert.match(script, /section\.classList\.toggle\("hidden", view !== "home" && !active\)/);
 });
 
-test("class rows open dedicated dashboards while the CBSE row retains its branch control", () => {
+test("class rows expand their dynamic submenus while the CBSE row retains its branch control", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const css = fs.readFileSync(path.join(root, "style.css"), "utf8");
   const script = fs.readFileSync(path.join(root, "script.js"), "utf8");
@@ -48,7 +48,8 @@ test("class rows open dedicated dashboards while the CBSE row retains its branch
   assert.match(css, /\.nav-chevron\{[^}]*transform:rotate\(0deg\);[^}]*transition:transform \.22s ease/s);
   assert.match(css, /\.nav-branch\.expanded \.nav-chevron\{[^}]*transform:rotate\(90deg\)/s);
   assert.match(script, /function toggleNavigationBranch\(tab\)/);
-  assert.match(script, /if\(tab\)\{openClassDashboard\(tab\.dataset\.class\);\}/);
+  assert.match(script, /if\(tab\)toggleNavigationBranch\(tab\)/);
+  assert.doesNotMatch(script, /openClassDashboard/);
   assert.match(script, /const boardTab=e\.target\.closest\("\[data-board-nav\]"\);if\(boardTab\)\{const shouldExpand=toggleNavigationBranch\(boardTab\);if\(shouldExpand\)showBoardPage\(true\);return;\}/);
 });
 

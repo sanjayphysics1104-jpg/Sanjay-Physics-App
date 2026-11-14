@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- KaTeX styles (the font files are resolved from this versioned CDN path). -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css">
-  <link rel="stylesheet" href="style.css?v=full-screen-navigation-20261112-1">
+  <link rel="stylesheet" href="style.css?v=desktop-pdf-exit-20261113-3">
   <title>Sanjay Singh Physics</title>
 </head>
 <body>
@@ -55,7 +55,6 @@
         <button class="admin-trigger" id="adminLoginBtn" type="button">
           <span class="avatar-icon">SS</span><span id="adminButtonText">Admin Login</span>
         </button>
-        <button class="header-logout hidden" id="headerLogoutBtn" type="button" aria-haspopup="dialog" aria-controls="logoutConfirmModal">Log out</button>
         <button class="install-btn hidden" id="installBtn" type="button" aria-haspopup="dialog" aria-controls="installModal">Install App</button>
       </div>
     </div>
@@ -84,10 +83,6 @@
         <button class="class-tab" data-class="NEET / JEE" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navEntrance">NEET / JEE<span class="nav-chevron" aria-hidden="true">›</span></button>
         <div class="nav-submenu" id="navEntrance" aria-label="NEET and JEE resources"></div>
       </div>
-      <div class="nav-branch" data-nav-branch="Other Subjects">
-        <button class="class-tab" data-class="Other Subjects" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navOther">Other Subjects<span class="nav-chevron" aria-hidden="true">›</span></button>
-        <div class="nav-submenu" id="navOther" aria-label="Other subject resources"></div>
-      </div>
       <div class="nav-branch nav-board-branch" data-nav-branch="CBSE Board">
         <button class="class-tab board-nav-tab" type="button" data-board-nav aria-expanded="false" aria-controls="navBoard">CBSE Question Bank<span class="nav-chevron" aria-hidden="true">›</span></button>
         <div class="nav-submenu" id="navBoard" aria-label="CBSE board question resources">
@@ -95,6 +90,11 @@
           <button type="button" class="nav-subleg" data-board-view="search"><span aria-hidden="true">⌕</span><span><strong>Chapter Search</strong><small>Find a board chapter</small></span></button>
         </div>
       </div>
+      <div class="nav-branch" data-nav-branch="Other Subjects">
+        <button class="class-tab" data-class="Other Subjects" role="tab" aria-selected="false" aria-expanded="false" aria-controls="navOther">Other Subjects<span class="nav-chevron" aria-hidden="true">›</span></button>
+        <div class="nav-submenu" id="navOther" aria-label="Other subject resources"></div>
+      </div>
+      <button class="global-exit-btn" id="exitAppBtn" type="button"><span aria-hidden="true">↪</span> EXIT APP / SIGN OUT</button>
     </div>
   </nav>
 
@@ -246,7 +246,7 @@
         </form>
       </div>
       <div id="adminDashboard" class="hidden">
-        <div class="admin-title"><div><span class="section-kicker">ADMIN CONTROL</span><h2>Content manager</h2></div><button class="danger-link" id="logoutBtn">Log out</button></div>
+        <div class="admin-title"><div><span class="section-kicker">ADMIN CONTROL</span><h2>Content manager</h2></div></div>
         <div class="admin-tabs" role="tablist">
           <button class="active" data-admin-tab="video">Video</button><button data-admin-tab="pdf">PDF</button><button data-admin-tab="question">Question bank</button><button data-admin-tab="quiz">Quiz</button><button data-admin-tab="board">CBSE Board</button>
         </div>
@@ -309,20 +309,6 @@
     </div>
   </div>
 
-  <div class="modal" id="logoutConfirmModal" role="alertdialog" aria-modal="true" aria-labelledby="logoutConfirmTitle" aria-describedby="logoutConfirmMessage" aria-hidden="true">
-    <div class="modal-backdrop" data-cancel-logout></div>
-    <div class="modal-panel confirm-logout-panel">
-      <span class="modal-icon" aria-hidden="true">↪</span>
-      <h2 id="logoutConfirmTitle">Log out of admin?</h2>
-      <p id="logoutConfirmMessage">This ends only the current authenticated admin session. Learning content, PDFs, settings and assistant data will stay on this device.</p>
-      <p class="form-error" id="logoutError" role="alert"></p>
-      <div class="confirm-logout-actions">
-        <button class="secondary-btn" id="cancelLogoutBtn" type="button" data-cancel-logout>Cancel</button>
-        <button class="confirm-logout-btn" id="confirmLogoutBtn" type="button">Log out</button>
-      </div>
-    </div>
-  </div>
-
   <div class="modal" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle" aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div><div class="modal-panel media-panel"><button class="close-btn" data-close-modal>×</button><div class="video-frame" id="videoFrame"></div><h2 id="videoModalTitle"></h2><p id="videoModalMeta"></p></div>
   </div>
@@ -349,7 +335,6 @@
       <div class="reader-header">
         <div class="reader-heading"><small id="readerClass"></small><h2 id="readerTitle">Document reader</h2></div>
         <div class="reader-header-actions">
-          <a class="reader-download hidden" id="readerDownload" href="#" download aria-label="Download PDF">Download PDF</a>
           <button class="reader-fullscreen-btn" id="readerFullscreenBtn" type="button" aria-label="Enter full screen" aria-pressed="false" title="Enter full screen">
             <svg class="fullscreen-enter-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
             <svg class="fullscreen-exit-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8H3V3M16 8h5V3M8 16H3v5M16 16h5v5"/></svg>
@@ -358,10 +343,15 @@
         </div>
       </div>
       <div class="reader-document-tabs" id="readerDocumentTabs" role="tablist" aria-label="Chapter PDF documents"></div>
-      <div class="book-stage" id="bookStage"><div class="book-page" id="bookPage"><canvas id="pdfCanvas" aria-label="PDF page"></canvas><div class="reader-placeholder" id="readerPlaceholder" role="status"><span>▤</span><h3 id="readerPlaceholderTitle">Loading document…</h3><p id="readerPlaceholderText">Preparing the in-app PDF viewer.</p><a class="reader-fallback-open hidden" id="readerFallbackOpen" target="_blank" rel="noopener">Open PDF in browser</a></div></div></div>
+      <div class="book-stage" id="bookStage" tabindex="0" aria-label="Scrollable PDF viewer">
+        <div class="pdf-pages" id="pdfPages" role="document" aria-label="PDF pages"></div>
+        <div class="reader-placeholder" id="readerPlaceholder" role="status"><span>▤</span><h3 id="readerPlaceholderTitle">Loading document…</h3><p id="readerPlaceholderText">Preparing the in-app PDF viewer.</p></div>
+        <div class="pdf-protection-shield hidden" id="pdfProtectionShield" role="status" aria-live="assertive"><span aria-hidden="true">◉</span><strong>Protected document</strong><p id="pdfProtectionMessage">This action is disabled.</p></div>
+      </div>
       <div class="reader-controls">
         <div class="reader-page-controls"><button id="prevPage" type="button">← Previous</button><label>Page <input id="pageNumber" type="number" min="1" value="1" inputmode="numeric"> of <span id="totalPages">1</span></label><button id="nextPage" type="button">Next →</button></div>
         <div class="reader-zoom-controls" aria-label="PDF zoom controls"><button id="zoomOutBtn" type="button" aria-label="Zoom out">−</button><output id="zoomLevel" aria-live="polite">100%</output><button id="zoomInBtn" type="button" aria-label="Zoom in">+</button><button id="zoomFitBtn" type="button">Fit</button></div>
+        <button id="readerDownload" type="button" disabled>↓ Download PDF</button>
       </div>
     </div>
   </div>
@@ -417,13 +407,32 @@
     </div>
   </section>
 
+  <section class="exit-screen hidden" id="exitScreen" tabindex="-1" aria-labelledby="exitScreenTitle">
+    <div>
+      <span aria-hidden="true">✓</span>
+      <h1 id="exitScreenTitle">App Closed</h1>
+      <p>You can now safely close this window.</p>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      if (!("serviceWorker" in navigator)) return;
+      let refreshingForUpdate = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshingForUpdate) return;
+        refreshingForUpdate = true;
+        location.reload();
+      });
+    })();
+  </script>
   <!-- Rich AI response pipeline: Markdown -> sanitized HTML -> KaTeX. -->
   <script src="https://cdn.jsdelivr.net/npm/marked@16.4.1/lib/marked.umd.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.7/dist/purify.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/contrib/auto-render.min.js" defer></script>
   <script src="api-config.js" defer></script>
-  <script src="script.js?v=critical-ai-pdf-fix-20261113-1" defer></script>
+  <script src="script.js?v=critical-ai-file-pdf-preview-20261114-1" defer></script>
   <script src="ai-assistant.js?v=persistent-drawer-20261109-4" defer></script>
   <!-- Independent, fully offline Sanjay Physics Assistant. -->
   <script src="Sanjay_Physics_Assistant/knowledge-base.js" defer></script>

@@ -63,6 +63,9 @@ async function run({port, standalone=false}) {
     await send("Page.enable");
     await send("Browser.setDownloadBehavior", {behavior:"allow", downloadPath, eventsEnabled:true});
     await waitFor("document.readyState === 'complete' && document.querySelectorAll('.class-dashboard-card').length === 4");
+    await waitFor("!('serviceWorker' in navigator) || Boolean(navigator.serviceWorker.controller)", 30000);
+    await sleep(600);
+    await waitFor("document.readyState === 'complete' && document.querySelectorAll('.class-dashboard-card').length === 4");
 
     const installability = (await send("Page.getInstallabilityErrors")).result.installabilityErrors;
     const manifestErrors = (await send("Page.getAppManifest")).result.errors;
@@ -72,53 +75,53 @@ async function run({port, standalone=false}) {
       await send("Page.navigate", {url:origin});
       await waitFor("document.readyState === 'complete' && document.querySelectorAll('.class-dashboard-card').length === 4");
       for (const className of ["Class 9th","Class 10th","Class 11th","Class 12th"]) {
-        await evaluate(`document.querySelector('[data-class=${JSON.stringify(className)}]').click();true`);
-        await waitFor("document.body.classList.contains('learning-dashboard-open')");
-        const state = await evaluate("({title:document.querySelector('#classDashboardTitle').textContent,navHidden:getComputedStyle(document.querySelector('.class-nav')).display==='none',cards:document.querySelectorAll('.class-dashboard-card').length,scrollX:document.documentElement.scrollWidth<=document.documentElement.clientWidth,metrics:{innerWidth,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,visualWidth:visualViewport?.width},overflow:[...document.querySelectorAll('body *')].filter(element=>element.getBoundingClientRect().right>document.documentElement.clientWidth+1).slice(0,6).map(element=>({tag:element.tagName,id:element.id,className:element.className,right:Math.round(element.getBoundingClientRect().right),parent:element.parentElement?.id||element.parentElement?.className||element.parentElement?.tagName,text:element.textContent?.trim().slice(0,40)}))})");
+        await evaluate(`(()=>{const branch=document.querySelector('[data-nav-branch=${JSON.stringify(className)}]');if(!branch.classList.contains('expanded'))branch.querySelector(':scope > .class-tab').click();return true;})()`);
+        await waitFor(`document.querySelector('[data-nav-branch=${JSON.stringify(className)}]').classList.contains('expanded')`);
+        const state = await evaluate(`({navHidden:getComputedStyle(document.querySelector('.class-nav')).display==='none',legs:document.querySelectorAll('[data-nav-branch=${JSON.stringify(className)}] [data-nav-target]').length,dashboardOpen:document.body.classList.contains('learning-dashboard-open'),scrollX:document.documentElement.scrollWidth<=document.documentElement.clientWidth,metrics:{innerWidth,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,visualWidth:visualViewport?.width},overflow:[...document.querySelectorAll('body *')].filter(element=>element.getBoundingClientRect().right>document.documentElement.clientWidth+1&&!element.closest('.video-grid')).slice(0,6).map(element=>({tag:element.tagName,id:element.id,className:element.className,right:Math.round(element.getBoundingClientRect().right),parent:element.parentElement?.id||element.parentElement?.className||element.parentElement?.tagName,text:element.textContent?.trim().slice(0,40)}))})`);
         layouts.push({viewport:viewport.name,className,...state});
-        await evaluate("document.querySelector('#learningViewBack').click();true");
-        await waitFor("!document.body.classList.contains('learning-dashboard-open')");
       }
     }
 
     await send("Emulation.setDeviceMetricsOverride", {width:412,height:915,deviceScaleFactor:2,mobile:true});
-    await evaluate("document.querySelector('[data-class=\"Class 12th\"]').click();true");
-    await waitFor("document.body.classList.contains('learning-dashboard-open')");
+    await evaluate("document.querySelector('[data-class=\"Class 9th\"]').click();true");
+    await waitFor("document.querySelector('[data-nav-branch=\"Class 9th\"]').classList.contains('expanded')");
     const sections = [];
     for (const targetName of ["videos","pdfs","question-bank","quiz"]) {
-      await evaluate(`document.querySelector('[data-learning-target=${JSON.stringify(targetName)}]').click();true`);
+      await evaluate(`document.querySelector('[data-nav-class="Class 9th"][data-nav-target=${JSON.stringify(targetName)}]').click();true`);
       await waitFor(`document.body.classList.contains('learning-section-open') && document.querySelector('#${targetName}').classList.contains('active-learning-section')`);
       sections.push(await evaluate(`({target:${JSON.stringify(targetName)},visibleSections:[...document.querySelectorAll('.learning-section')].filter(section=>getComputedStyle(section).display!=='none').map(section=>section.id),navHidden:getComputedStyle(document.querySelector('.class-nav')).display==='none',nestedScroll:getComputedStyle(document.querySelector('#${targetName} .learning-scroll')||document.querySelector('#${targetName}')).overflowY})`));
-      await evaluate("history.back();true");
-      await waitFor("document.body.classList.contains('learning-dashboard-open')");
+      await evaluate("document.querySelector('#learningViewBack').click();true");
+      await waitFor("!document.body.classList.contains('learning-section-open')");
     }
 
-    await evaluate("document.querySelector('[data-learning-target=\"pdfs\"]').click();true");
+    await evaluate("document.querySelector('[data-nav-class=\"Class 9th\"][data-nav-target=\"pdfs\"]').click();true");
     await waitFor("document.querySelector('#pdfs').classList.contains('active-learning-section')");
-    await evaluate("document.querySelector('[data-open-pdf]').click();true");
-    await waitFor("document.querySelector('#pdfModal').classList.contains('open') && document.querySelector('#pdfCanvas').style.display === 'block'", 60000);
-    const pdf = await evaluate("(async()=>({page:Number(document.querySelector('#pageNumber').value),downloadVisible:!document.querySelector('#readerDownload').classList.contains('hidden'),downloadStatus:(await fetch(currentPdfUrl)).status}))()");
+    await evaluate("document.querySelector('[data-open-pdf^=\"imported-9-\"]').click();true");
+    await waitFor("document.querySelector('#pdfModal').classList.contains('open') && document.querySelector('.pdf-page-canvas[data-rendered=\"true\"]')", 60000);
+    const pdf = await evaluate("(()=>{const stage=document.querySelector('#bookStage');const contextEvent=new MouseEvent('contextmenu',{bubbles:true,cancelable:true});stage.dispatchEvent(contextEvent);return {page:Number(document.querySelector('#pageNumber').value),renderedPages:document.querySelectorAll('.pdf-page-canvas[data-rendered=\"true\"]').length,pageFrames:document.querySelectorAll('.pdf-page-frame').length,scrollable:stage.scrollHeight>stage.clientHeight,downloadControls:document.querySelectorAll('#readerDownload,[download]').length,externalOpenControls:document.querySelectorAll('#readerFallbackOpen').length,contextBlocked:contextEvent.defaultPrevented,shieldVisible:!document.querySelector('#pdfProtectionShield').classList.contains('hidden')};})()");
     await evaluate("document.querySelector('#readerDownload').click();true");
-    await waitFor("true", 500);
+    await sleep(300);
     await evaluate("history.back();true");
     await waitFor("!document.querySelector('#pdfModal').classList.contains('open')");
 
     await evaluate("document.querySelector('#adminLoginBtn').click();true");
     await evaluate("document.querySelector('#adminPin').value='runtime-test-pin';document.querySelector('#loginForm').requestSubmit();true");
     await waitFor("document.body.classList.contains('admin-mode') && Boolean(sessionStorage.getItem('ssp_admin_token'))");
-    const authenticated = await evaluate("({headerLogoutVisible:!document.querySelector('#headerLogoutBtn').classList.contains('hidden'),dashboardVisible:!document.querySelector('#adminDashboard').classList.contains('hidden')})");
-    await evaluate("document.querySelector('#headerLogoutBtn').click();true");
-    await waitFor("document.querySelector('#logoutConfirmModal').classList.contains('open')");
-    await evaluate("document.querySelector('#cancelLogoutBtn').click();true");
-    const cancelled = await evaluate("Boolean(sessionStorage.getItem('ssp_admin_token')) && document.body.classList.contains('admin-mode')");
-    await evaluate("document.querySelector('#headerLogoutBtn').click();document.querySelector('#confirmLogoutBtn').click();true");
-    await waitFor("!document.body.classList.contains('admin-mode') && document.querySelector('#adminModal').classList.contains('open')");
-    const loggedOut = await evaluate("(async()=>({token:sessionStorage.getItem('ssp_admin_token'),legacy:sessionStorage.getItem('ssp_admin_session'),loginVisible:!document.querySelector('#loginView').classList.contains('hidden'),dashboardHidden:document.querySelector('#adminDashboard').classList.contains('hidden'),pdfCount:data.pdfs.length,assistants:Boolean(document.querySelector('#aiAssistant')&&document.querySelector('#spaPanel')),unauthenticatedStatus:(await fetch('/api/admin-session')).status}))()");
-    await evaluate("document.querySelector('#adminPin').value='runtime-test-pin';document.querySelector('#loginForm').requestSubmit();true");
-    await waitFor("document.body.classList.contains('admin-mode') && Boolean(sessionStorage.getItem('ssp_admin_token'))");
-    const relogin = await evaluate("!document.querySelector('#adminDashboard').classList.contains('hidden')");
+    const authenticated = await evaluate("({adminLogoutControls:document.querySelectorAll('#headerLogoutBtn,#logoutBtn,#logoutConfirmModal').length,dashboardVisible:!document.querySelector('#adminDashboard').classList.contains('hidden')})");
+    await send("Network.enable");
+    await send("Network.emulateNetworkConditions", {offline:true,latency:0,downloadThroughput:0,uploadThroughput:0});
+    await evaluate("document.querySelector('#exitAppBtn').click();true");
+    await waitFor("document.body.classList.contains('app-exited') && !document.querySelector('#exitScreen').classList.contains('hidden')");
+    const loggedOutOffline = await evaluate("({token:sessionStorage.getItem('ssp_admin_token'),legacy:sessionStorage.getItem('ssp_admin_session'),exitMarker:sessionStorage.getItem('ssp_app_exited'),interfaceHidden:getComputedStyle(document.querySelector('.app-header')).display==='none',exitVisible:getComputedStyle(document.querySelector('#exitScreen')).display!=='none',dashboardHidden:document.querySelector('#adminDashboard').getClientRects().length===0,pdfCount:data.pdfs.length,assistants:Boolean(document.querySelector('#aiAssistant')&&document.querySelector('#spaPanel'))})");
+    await evaluate("history.back();true");
+    await sleep(300);
+    const backProtected = await evaluate("document.body.classList.contains('app-exited') && !sessionStorage.getItem('ssp_admin_token')");
+    await send("Network.emulateNetworkConditions", {offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
+    const unauthenticatedStatus = await evaluate("fetch('/api/admin-session').then(response=>response.status)");
+    const loggedOut = {...loggedOutOffline, unauthenticatedStatus};
+    const terminalExit = await evaluate("!document.querySelector('#returnToLoginBtn') && document.querySelector('#exitScreenTitle').textContent==='App Closed' && document.querySelector('#exitScreen p').textContent.includes('safely close this window')");
 
-    return {standalone:await evaluate("matchMedia('(display-mode: standalone)').matches"),installability,manifestErrors,layouts,sections,pdf:{...pdf,downloadStarted:downloads.length>0},authenticated,cancelled,loggedOut,relogin,runtimeErrors};
+    return {standalone:await evaluate("matchMedia('(display-mode: standalone)').matches"),installability,manifestErrors,layouts,sections,pdf:{...pdf,downloadStarted:downloads.length>0},authenticated,loggedOut,backProtected,terminalExit,runtimeErrors};
   } finally {
     try { socket?.close(); } catch {}
     browser.kill();
@@ -132,30 +135,38 @@ function assertResult(result, expectedStandalone) {
   assert.deepEqual(result.manifestErrors, []);
   assert.equal(result.standalone, expectedStandalone);
   for (const layout of result.layouts) {
-    assert.equal(layout.navHidden, true, `${layout.className} ${layout.viewport}: class selector remained visible`);
-    assert.equal(layout.cards, 4, `${layout.className} ${layout.viewport}: dashboard cards are incomplete`);
+    assert.equal(layout.navHidden, false, `${layout.className} ${layout.viewport}: class selector was hidden`);
+    assert.equal(layout.legs, 4, `${layout.className} ${layout.viewport}: dynamic submenu is incomplete`);
+    assert.equal(layout.dashboardOpen, false, `${layout.className} ${layout.viewport}: class click opened the old dashboard`);
     assert.equal(layout.scrollX, true, `${layout.className} ${layout.viewport}: horizontal overflow detected`);
     assert.deepEqual(layout.overflow, [], `${layout.className} ${layout.viewport}: overflowing elements detected`);
   }
   for (const section of result.sections) {
     assert.deepEqual(section.visibleSections, [section.target], `${section.target}: more than one learning section is visible`);
-    assert.equal(section.navHidden, true, `${section.target}: class selector remained visible`);
+    assert.equal(section.navHidden, false, `${section.target}: class selector was hidden`);
     assert.equal(section.nestedScroll, "visible", `${section.target}: nested scrolling remains enabled`);
   }
   assert.equal(result.pdf.page, 1);
-  assert.equal(result.pdf.downloadVisible, true);
-  assert.equal(result.pdf.downloadStatus, 200);
+  assert.ok(result.pdf.renderedPages >= 1);
+  assert.ok(result.pdf.pageFrames >= 1);
+  assert.equal(result.pdf.scrollable, true);
+  assert.equal(result.pdf.downloadControls, 1);
+  assert.equal(result.pdf.externalOpenControls, 0);
+  assert.equal(result.pdf.contextBlocked, true);
+  assert.equal(result.pdf.shieldVisible, true);
   assert.equal(result.pdf.downloadStarted, true);
-  assert.equal(result.authenticated.headerLogoutVisible, true);
+  assert.equal(result.authenticated.adminLogoutControls, 0);
   assert.equal(result.authenticated.dashboardVisible, true);
-  assert.equal(result.cancelled, true);
   assert.equal(result.loggedOut.token, null);
   assert.equal(result.loggedOut.legacy, null);
-  assert.equal(result.loggedOut.loginVisible, true);
+  assert.equal(result.loggedOut.exitMarker, "true");
+  assert.equal(result.loggedOut.interfaceHidden, true);
+  assert.equal(result.loggedOut.exitVisible, true);
   assert.equal(result.loggedOut.dashboardHidden, true);
   assert.equal(result.loggedOut.assistants, true);
   assert.equal(result.loggedOut.unauthenticatedStatus, 401);
-  assert.equal(result.relogin, true);
+  assert.equal(result.backProtected, true);
+  assert.equal(result.terminalExit, true);
   assert.deepEqual(result.runtimeErrors, []);
 }
 

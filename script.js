@@ -5,6 +5,7 @@ const STORAGE_KEY = "ssp_content_v1";
 const PIN_KEY = "ssp_admin_pin_v1";
 const SESSION_KEY = "ssp_admin_session";
 const ADMIN_TOKEN_KEY = "ssp_admin_token";
+const APP_EXITED_KEY = "ssp_app_exited";
 const MAX_PDF_BYTES = 40 * 1024 * 1024;
 const MAX_PDF_LABEL = "40 MB";
 const PDF_DB_NAME = "ssp_pdf_files_v1";
@@ -15,6 +16,7 @@ const BOARD_PDF_DB_NAME = "ssp_cbse_board_pdf_files_v1";
 const BOARD_PDF_STORE_NAME = "boardPdfFiles";
 const QUESTION_BANK_PDF_DB_NAME = "ssp_question_bank_pdf_files_v1";
 const QUESTION_BANK_PDF_STORE_NAME = "questionBankPdfFiles";
+const MAX_PDF_PREVIEW_PAGES = 128;
 const cloneContentData = value => typeof structuredClone === "function"
   ? structuredClone(value)
   : JSON.parse(JSON.stringify(value));
@@ -78,6 +80,31 @@ const IMPORTED_CLASS_11_PDFS = [
   fileSize,
   isImportedStatic:true
 }));
+const IMPORTED_QUESTION_BANK_PDFS = [
+  ["class-10/imported/Class 10 Board electricity.pdf","Class 10th","Electricity",4,50],
+  ["class-11/legacy/13. KTG MCQ.pdf","Class 11th","Kinetic Theory of Gases",28,0],
+  ["class-11/legacy/9. Elasticity Objective.pdf","Class 11th","Mechanical Properties of Solids",19,0],
+  ["class-11/legacy/Friction MCQ  (1).pdf","Class 11th","Laws of Motion",15,0],
+  ["class-11/legacy/Rotational Motion MCQ.pdf","Class 11th","System of Particles and Rotational Motion",60,0],
+  ["class-11/legacy/Thermal Properties Of Matter MCQ.pdf","Class 11th","Thermal Properties of Matter",17,0],
+  ["class-11/legacy/Thermodynamics MCQ.pdf","Class 11th","Thermodynamics",32,0],
+  ["class-11/legacy/Work,_Energy,_Power_And_Collision_MCQ_.pdf","Class 11th","Work, Energy and Power",40,0],
+  ["class-11/imported/Simple Harmonic Motion MCQ.pdf","Class 11th","Oscillations",47,0],
+  ["class-11/imported/Waves MCQ.pdf","Class 11th","Waves",60,0]
+].map(([assetPath,className,chapter,pages,count],index) => {
+  const fileName = assetPath.split("/").pop();
+  return {
+    id:`imported-question-bank-${String(index + 1).padStart(2,"0")}`,
+    className,
+    chapter,
+    title:fileName.replace(/\.pdf$/i,""),
+    count,
+    pages,
+    fileName,
+    url:`assets/pdfs/${assetPath}`,
+    isImportedStatic:true
+  };
+});
 const LEGACY_CLASS_12_PDF_PATH = "assets/pdfs/class-12/legacy";
 const RECOVERED_CLASS_12_PDFS = [
   {id:"legacy-12-electric-charges-fields",chapter:"Electric Charges and Fields",title:"Electric Charges and Fields",fileName:"ELECTRIC CHARGES AND FIELDS.pdf",pages:1},
@@ -91,7 +118,9 @@ const RECOVERED_CLASS_12_PDFS = [
   {id:"legacy-12-ray-optics",chapter:"Ray Optics and Optical Instruments",title:"Ray Optics and Optical Instruments",fileName:"RAY OPTICS AND OPTICAL INSTRUMENTS.pdf",pages:1},
   {id:"legacy-12-wave-optics",chapter:"Wave Optics",title:"Wave Optics",fileName:"WAVE OPTICS.pdf",pages:1},
   {id:"legacy-12-dual-nature",chapter:"Dual Nature of Radiation and Matter",title:"Dual Nature of Radiation and Matter",fileName:"DUAL NATURE OF RADIATION AND MATTER.pdf",pages:1},
-  {id:"legacy-12-atoms",chapter:"Atoms",title:"Atoms",fileName:"ATOMS.pdf",pages:1}
+  {id:"legacy-12-atoms",chapter:"Atoms",title:"Atoms",fileName:"ATOMS.pdf",pages:1},
+  {id:"legacy-12-nuclei",chapter:"Nuclei",title:"Nuclei",fileName:"nuclie.pdf",pages:24},
+  {id:"legacy-12-semiconductor",chapter:"Semiconductor Electronics",title:"Semiconductor Electronics",fileName:"SEMICONDUCTOR.pdf",pages:18}
 ].map(item => ({...item,className:"Class 12th",url:`${LEGACY_CLASS_12_PDF_PATH}/${item.fileName}`,fileSize:0,isRecoveredLegacy:true}));
 const LEGACY_CLASS_11_PDF_PATH = "assets/pdfs/class-11/legacy";
 const RECOVERED_CLASS_11_PDFS = [
@@ -119,6 +148,7 @@ const RECOVERED_CLASS_11_PDFS = [
   ["Motion in Two Dimension-1 projectile.pdf","Motion in a Plane"],
   ["PHYSICS - LAWS OF MOTION - Part 1.pdf","Laws of Motion"],
   ["PHYSICS - LAWS OF MOTION - Part 2.pdf","Laws of Motion"],
+  ["Projectile-Motion sanjay_Sanjay_Singh_Modified.pdf","Motion in a Plane"],
   ["Rotational Motion MCQ.pdf","System of Particles and Rotational Motion"],
   ["Rotational Motion Theory.pdf","System of Particles and Rotational Motion"],
   ["sanjy projectile.pdf","Motion in a Plane"],
@@ -147,24 +177,9 @@ const BOARD_CHAPTERS = [
   "Nuclei",
   "Semiconductor Electronics"
 ];
-const RECOVERED_CBSE_BOARD_FILE = "CBSE_Class_12_Physics_Question_Bank_2022-2026.pdf";
-const RECOVERED_CBSE_BOARD_PATH = `assets/pdfs/class-12/cbse-question-banks/${RECOVERED_CBSE_BOARD_FILE}`;
-const RECOVERED_CBSE_BOARD_QUESTIONS = BOARD_CHAPTERS.map((chapter,index) => ({
-  id:`recovered-cbse-12-${String(index + 1).padStart(2,"0")}`,
-  className:"Class 12th",
-  chapter,
-  title:`${chapter} — ${RECOVERED_CBSE_BOARD_FILE.replace(/\.pdf$/i,"")}`,
-  documentLabel:RECOVERED_CBSE_BOARD_FILE.replace(/\.pdf$/i,""),
-  fileName:RECOVERED_CBSE_BOARD_FILE,
-  url:RECOVERED_CBSE_BOARD_PATH,
-  blobKey:"",
-  fileSize:106981304,
-  pages:1,
-  years:"2022–2026",
-  isRecoveredLegacy:true
-}));
 const IMPORTED_CBSE_BOARD_PDF_PATH = "assets/pdfs/class-12/cbse-question-banks/chapter-wise-import";
 const IMPORTED_CBSE_BOARD_PDFS = [
+  ["AC Devices.pdf","Alternating Current",7,331828],
   ["Alternating Current  question.pdf","Alternating Current",56,3519185],
   ["Capacitance.pdf","Electric Potential and Capacitance",35,3875466],
   ["CBSE_Class12_Physics_Atoms_Master_Question_Bank_By_Sanjay_Singh.pdf","Atoms",14,2682795],
@@ -175,9 +190,13 @@ const IMPORTED_CBSE_BOARD_PDFS = [
   ["CBSE_Class12_Physics_Ray_Optics_Master_Question_Bank_By_Sanjay_Singh.pdf","Ray Optics and Optical Instruments",11,2027036],
   ["CBSE_Class12_Physics_Semiconductors_Master_Question_Bank_By_Sanjay_Singh.pdf","Semiconductor Electronics",13,2742850],
   ["CBSE_Class12_Physics_Wave_Optics_Master_Question_Bank_By_Sanjay_Singh.pdf","Wave Optics",14,2619800],
+  ["CHAPTER  2 ElECTROSTATIC AND POTENTIAL.pdf","Electric Potential and Capacitance",35,1958450],
   ["Coulombs Law, Electrostatic Field & Electric Dipole.pdf","Electric Charges and Fields",16,1349365],
   ["Current Electricity impotant.pdf","Current Electricity",72,3525977],
+  ["Earth’s MagneticField & Magnetic Material.pdf","Magnetism and Matter",17,1675825],
+  ["EddyCurrents & Self & Mutual Induction.pdf","Electromagnetic Induction",19,1533590],
   ["ELECTRIC CHARGE AND FIELD CBSE QST.pdf","Electric Charges and Fields",52,3350030],
+  ["Electromagnetic Induction Laws.pdf","Electromagnetic Induction",17,1668074],
   ["Electromagnetic Induction question.pdf","Electromagnetic Induction",49,3036048],
   ["Electromagnetic Waves question.pdf","Electromagnetic Waves",22,1577806],
   ["Electrostatic Potential and Capacitance CBSE QST.pdf","Electric Potential and Capacitance",78,4241804],
@@ -212,7 +231,7 @@ const IMPORTED_CBSE_BOARD_PDFS = [
 });
 
 const DEFAULT_DATA = {
-  boardQuestions: [...RECOVERED_CBSE_BOARD_QUESTIONS, ...IMPORTED_CBSE_BOARD_PDFS],
+  boardQuestions: [...IMPORTED_CBSE_BOARD_PDFS],
   videos: [
     {id:"v1",className:"Class 9th",chapter:"Motion",title:"Motion: Distance, Displacement & Speed",url:"https://www.youtube.com/watch?v=ZM8ECpBuQYE",duration:"18 min"},
     {id:"v2",className:"Class 9th",chapter:"Force and Laws",title:"Newton's Laws of Motion Explained",url:"https://www.youtube.com/watch?v=kKKM8Y-u7ds",duration:"24 min"},
@@ -250,7 +269,8 @@ const DEFAULT_DATA = {
     {id:"b6",className:"Class 10th",chapter:"Electricity",title:"Electricity Numericals",count:32,url:""},
     {id:"b7",className:"Class 11th",chapter:"Kinematics",title:"Kinematics Problem Set",count:45,url:""},
     {id:"b8",className:"Class 12th",chapter:"Electrostatics",title:"Electrostatics Problems",count:42,url:""},
-    {id:"b9",className:"NEET / JEE",chapter:"Mechanics",title:"Mechanics PYQ Drill",count:60,url:""}
+    {id:"b9",className:"NEET / JEE",chapter:"Mechanics",title:"Mechanics PYQ Drill",count:60,url:""},
+    ...IMPORTED_QUESTION_BANK_PDFS
   ],
   quizzes: [
     {id:"q1",className:"Class 9th",chapter:"Motion",question:"Which quantity describes the shortest distance from the initial to the final position?",options:["Distance","Displacement","Speed","Path length"],answer:1,explanation:"Displacement is the straight-line change in position, including direction."},
@@ -281,15 +301,19 @@ let currentPdf = null;
 let currentPage = 1;
 let currentPdfUrl = "";
 let activePdfObjectUrl = null;
+let currentPdfDownloadUrl = null;
 let readerDocuments = [];
 let currentPdfCollection = "pdfs";
 let pdfLoadToken = 0;
 let pdfDocument = null;
 let pdfLoadingTask = null;
-let pdfRenderTask = null;
+let pdfRenderTasks = new Map();
 let pdfRenderSerial = 0;
 let pdfZoom = 1;
 let pdfJsPromise = null;
+let pdfProtectionTimer = null;
+let pdfPageObserver = null;
+let pdfScrollFrame = 0;
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -309,13 +333,15 @@ function loadData() {
       if (existing) existing.fallbackUrl = recovered.url;
       else saved.pdfs.push(cloneContentData(recovered));
     });
-    RECOVERED_CBSE_BOARD_QUESTIONS.forEach(recovered => {
-      const existing = saved.boardQuestions.find(pdf => pdf.chapter === recovered.chapter && (pdf.fileName === recovered.fileName || pdf.url === recovered.url));
-      if (!existing) saved.boardQuestions.push(cloneContentData(recovered));
-    });
+    saved.boardQuestions = saved.boardQuestions.filter(pdf => !String(pdf.id || "").startsWith("recovered-cbse-12-"));
     IMPORTED_CBSE_BOARD_PDFS.forEach(imported => {
       const existing = saved.boardQuestions.find(pdf => pdf.chapter === imported.chapter && (pdf.fileName === imported.fileName || pdf.url === imported.url));
       if (!existing) saved.boardQuestions.push(cloneContentData(imported));
+    });
+    IMPORTED_QUESTION_BANK_PDFS.forEach(imported => {
+      const existing = saved.questionBanks.find(pdf => pdf.className === imported.className && (pdf.fileName === imported.fileName || pdf.url === imported.url));
+      if (existing) existing.fallbackUrl = imported.url;
+      else saved.questionBanks.push(cloneContentData(imported));
     });
     return saved;
   } catch { return cloneContentData(DEFAULT_DATA); }
@@ -338,7 +364,6 @@ function renderAll() {
   document.body.classList.toggle("admin-mode", isAdmin);
   $$(".admin-only").forEach(el => el.style.display = isAdmin ? "" : "none");
   $("#adminButtonText").textContent = isAdmin ? "Admin Dashboard" : "Admin Login";
-  $("#headerLogoutBtn").classList.toggle("hidden", !isAdmin);
 }
 
 function boardQuestionsFor(chapter) {
@@ -465,11 +490,11 @@ function updateChapterSuggestions(category = $("#pdfForm")?.elements.namedItem("
 }
 
 function renderQuestionBanks() {
-  const items = filtered(data.questionBanks);
+  const items = filtered(data.questionBanks).filter(hasPdfSource);
   $("#questionBankGrid").innerHTML = items.length ? items.map((item, index) => `
     <article class="content-card bank-card" data-open-bank="${item.id}">
       ${isAdmin ? `<button class="delete-btn" type="button" data-delete="questionBanks" data-id="${item.id}" data-question-id="${item.id}" aria-label="Delete question set: ${escapeHTML(item.title)}">Delete</button>` : ""}
-      <span class="bank-number">${String(index + 1).padStart(2,"0")}</span><div><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.chapter)} • ${Number(item.count)} questions with solutions</p></div><span class="arrow">→</span>
+      <span class="bank-number">${String(index + 1).padStart(2,"0")}</span><div><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.chapter)} • ${item.isImportedStatic ? `${Number(item.pages) || 1}-page PDF with questions and solutions` : `${Number(item.count)} questions with solutions`}</p></div><span class="arrow">→</span>
     </article>`).join("") : emptyState("No question sets yet", "New practice sets will appear here.");
 }
 
@@ -485,7 +510,7 @@ function emptyState(title, message) { return `<div class="empty-state"><strong>$
 const NAVIGATION_LEGS = [
   {target:"videos", icon:"▶", title:"Video Lectures", detail:className=>`${data.videos.filter(item=>item.className===className).length} lessons`},
   {target:"pdfs", icon:"▤", title:"PDFs & Notes", detail:className=>`${data.pdfs.filter(item=>item.className===className).length} documents`},
-  {target:"question-bank", icon:"?", title:"Question Bank Hub", detail:className=>`${data.questionBanks.filter(item=>item.className===className).length} practice sets`},
+  {target:"question-bank", icon:"?", title:"Question Bank Hub", detail:className=>`${data.questionBanks.filter(item=>item.className===className && hasPdfSource(item)).length} practice sets`},
   {target:"quiz", icon:"★", title:"Online Quiz", detail:className=>`${data.quizzes.filter(item=>item.className===className).length} challenges`}
 ];
 
@@ -506,7 +531,7 @@ function renderClassDashboard() {
 function learningHash(state) {
   if (state.view === "home") return "#home";
   const base = `#class/${encodeURIComponent(state.className)}`;
-  return state.view === "section" ? `${base}/${encodeURIComponent(state.target)}` : base;
+  return `${base}/${encodeURIComponent(state.target)}`;
 }
 
 function learningStateFromLocation() {
@@ -515,12 +540,12 @@ function learningStateFromLocation() {
   const className = decodeURIComponent(match[1]);
   const target = match[2] ? decodeURIComponent(match[2]) : "";
   if (!CLASSES.includes(className)) return {view:"home", className:activeClass, target:""};
-  if (target && !NAVIGATION_LEGS.some(leg => leg.target === target)) return {view:"dashboard", className, target:""};
-  return {view:target ? "section" : "dashboard", className, target};
+  if (!target || !NAVIGATION_LEGS.some(leg => leg.target === target)) return {view:"home", className, target:""};
+  return {view:"section", className, target};
 }
 
 function setLearningView(next, {historyMode="push", scroll=true} = {}) {
-  const view = ["home", "dashboard", "section"].includes(next.view) ? next.view : "home";
+  const view = next.view === "section" ? "section" : "home";
   const className = CLASSES.includes(next.className) ? next.className : activeClass;
   const target = view === "section" && NAVIGATION_LEGS.some(leg => leg.target === next.target) ? next.target : "";
   learningView = {view, className, target};
@@ -528,10 +553,10 @@ function setLearningView(next, {historyMode="push", scroll=true} = {}) {
   if (activeClass !== className) setActiveClass(className, false);
   else renderClassDashboard();
 
-  document.body.classList.toggle("learning-dashboard-open", view === "dashboard");
+  document.body.classList.remove("learning-dashboard-open");
   document.body.classList.toggle("learning-section-open", view === "section");
   $("#learningViewBar").classList.toggle("hidden", view === "home");
-  $("#classDashboard").classList.toggle("hidden", view !== "dashboard");
+  $("#classDashboard").classList.add("hidden");
   $$(".learning-section").forEach(section => {
     const active = view === "section" && section.id === target;
     section.classList.toggle("active-learning-section", active);
@@ -539,7 +564,7 @@ function setLearningView(next, {historyMode="push", scroll=true} = {}) {
   });
   if (view !== "home") {
     $("#learningViewClass").textContent = className;
-    $("#learningViewTitle").textContent = view === "dashboard" ? "Class dashboard" : NAVIGATION_LEGS.find(leg => leg.target === target)?.title || "Learning area";
+    $("#learningViewTitle").textContent = NAVIGATION_LEGS.find(leg => leg.target === target)?.title || "Learning area";
   }
   $$(".mobile-nav a").forEach(link => {
     const linkTarget = link.getAttribute("href")?.slice(1);
@@ -556,14 +581,8 @@ function setLearningView(next, {historyMode="push", scroll=true} = {}) {
   if (scroll) window.scrollTo({top:0, behavior:"auto"});
 }
 
-function openClassDashboard(className, options) {
-  setLearningView({view:"dashboard", className, target:""}, options);
-}
-
 function goBackFromLearningView() {
-  if (history.state?.sspCanGoBack) { history.back(); return; }
-  if (learningView.view === "section") openClassDashboard(activeClass, {historyMode:"replace"});
-  else setLearningView({view:"home", className:activeClass, target:""}, {historyMode:"replace"});
+  setLearningView({view:"home", className:activeClass, target:""}, {historyMode:"replace"});
 }
 
 function renderNavigationLegs() {
@@ -725,18 +744,36 @@ function loadPdfJs() {
   return pdfJsPromise;
 }
 
-function showReaderPlaceholder(title, message, allowExternal = false) {
-  $("#pdfCanvas").style.display = "none";
+function showReaderPlaceholder(title, message) {
+  $("#pdfPages").replaceChildren();
   $("#readerPlaceholder").style.display = "grid";
   $("#readerPlaceholderTitle").textContent = title;
   $("#readerPlaceholderText").textContent = message;
-  $("#readerFallbackOpen").classList.toggle("hidden", !allowExternal || !currentPdfUrl);
+}
+
+function showPdfProtection(message, duration = 1200) {
+  if (!$("#pdfModal").classList.contains("open")) return;
+  clearTimeout(pdfProtectionTimer);
+  $("#pdfProtectionMessage").textContent = message;
+  $("#pdfProtectionShield").classList.remove("hidden");
+  if (duration > 0) pdfProtectionTimer = setTimeout(hidePdfProtection, duration);
+}
+
+function hidePdfProtection() {
+  clearTimeout(pdfProtectionTimer);
+  pdfProtectionTimer = null;
+  $("#pdfProtectionShield").classList.add("hidden");
 }
 
 async function disposePdfDocument() {
   pdfRenderSerial++;
-  try { pdfRenderTask?.cancel(); } catch {}
-  pdfRenderTask = null;
+  pdfPageObserver?.disconnect();
+  pdfPageObserver = null;
+  cancelAnimationFrame(pdfScrollFrame);
+  pdfScrollFrame = 0;
+  pdfRenderTasks.forEach(task => { try { task.cancel(); } catch {} });
+  pdfRenderTasks.clear();
+  $("#pdfPages").replaceChildren();
   const loadingTask = pdfLoadingTask;
   pdfLoadingTask = null;
   pdfDocument = null;
@@ -746,7 +783,7 @@ async function disposePdfDocument() {
 }
 
 function syncReaderControls() {
-  const pages = pdfDocument?.numPages || Number(currentPdf?.pages) || 1;
+  const pages = pdfPreviewPageCount();
   currentPage = Math.max(1, Math.min(pages, Number(currentPage) || 1));
   $("#pageNumber").value = currentPage;
   $("#pageNumber").max = pages;
@@ -758,62 +795,231 @@ function syncReaderControls() {
   $("#zoomLevel").textContent = `${Math.round(pdfZoom * 100)}%`;
 }
 
-async function renderPdfPage(direction = 0) {
-  if (!pdfDocument || !currentPdf) return;
-  const serial = ++pdfRenderSerial;
-  try { pdfRenderTask?.cancel(); } catch {}
-  pdfRenderTask = null;
-  syncReaderControls();
-  const bookPage = $("#bookPage");
-  bookPage.classList.toggle("turning", Boolean(direction));
-  showReaderPlaceholder("Rendering page…", `Page ${currentPage} of ${pdfDocument.numPages}`);
+function pdfPreviewPageCount() {
+  const documentPages = pdfDocument?.numPages || Number(currentPdf?.pages) || 1;
+  return Math.max(1, Math.min(MAX_PDF_PREVIEW_PAGES, documentPages));
+}
+
+function pdfPageFrame(pageNumber) {
+  return $("#pdfPages").querySelector(`[data-pdf-page="${pageNumber}"]`);
+}
+
+function cancelPdfPageRenders() {
+  pdfRenderSerial++;
+  pdfRenderTasks.forEach(task => { try { task.cancel(); } catch {} });
+  pdfRenderTasks.clear();
+}
+
+function sizePdfPagePlaceholder(frame) {
+  const stage = $("#bookStage");
+  const availableWidth = Math.max(260, stage.clientWidth - (window.matchMedia?.("(max-width: 620px)")?.matches ? 20 : 56));
+  const width = Math.max(130, availableWidth * pdfZoom);
+  const aspect = Number(frame.dataset.pageAspect) || 297 / 210;
+  frame.style.width = `${Math.round(width)}px`;
+  frame.style.height = `${Math.round(width * aspect)}px`;
+}
+
+async function renderPdfPage(pageNumber = currentPage) {
+  const documentToRender = pdfDocument;
+  const frame = pdfPageFrame(pageNumber);
+  if (!documentToRender || !currentPdf || !frame || pageNumber < 1 || pageNumber > pdfPreviewPageCount()) return false;
+  const serial = pdfRenderSerial;
+  const stage = $("#bookStage");
+  const renderKey = `${serial}:${pdfZoom}:${Math.round(stage.clientWidth)}`;
+  if (frame.dataset.rendered === renderKey || frame.dataset.rendering === renderKey) return true;
+  frame.dataset.rendering = renderKey;
   try {
-    const page = await pdfDocument.getPage(currentPage);
-    if (serial !== pdfRenderSerial) return;
-    const stage = $("#bookStage");
+    const page = await documentToRender.getPage(pageNumber);
+    if (serial !== pdfRenderSerial || documentToRender !== pdfDocument) return false;
     const baseViewport = page.getViewport({scale:1});
-    const availableWidth = Math.max(280, stage.clientWidth - 28);
-    const availableHeight = Math.max(320, stage.clientHeight - 28);
-    const fitScale = Math.min(availableWidth / baseViewport.width, availableHeight / baseViewport.height);
+    const availableWidth = Math.max(260, stage.clientWidth - (window.matchMedia?.("(max-width: 620px)")?.matches ? 20 : 56));
+    const fitScale = availableWidth / baseViewport.width;
     const viewport = page.getViewport({scale:Math.max(0.2, fitScale * pdfZoom)});
     const outputScale = Math.min(window.devicePixelRatio || 1, 2);
-    const canvas = $("#pdfCanvas");
+    const canvas = document.createElement("canvas");
+    canvas.className = "pdf-page-canvas";
+    canvas.dataset.pageNumber = String(pageNumber);
+    canvas.setAttribute("aria-label", `PDF page ${pageNumber} of ${pdfPreviewPageCount()}`);
     const context = canvas.getContext("2d", {alpha:false});
     canvas.width = Math.max(1, Math.floor(viewport.width * outputScale));
     canvas.height = Math.max(1, Math.floor(viewport.height * outputScale));
     canvas.style.width = `${Math.floor(viewport.width)}px`;
     canvas.style.height = `${Math.floor(viewport.height)}px`;
-    bookPage.style.width = canvas.style.width;
-    bookPage.style.height = canvas.style.height;
-    pdfRenderTask = page.render({
+    frame.dataset.pageAspect = String(baseViewport.height / baseViewport.width);
+    frame.style.width = canvas.style.width;
+    frame.style.height = canvas.style.height;
+    const renderTask = page.render({
       canvasContext:context,
       viewport,
       transform:outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
     });
-    await pdfRenderTask.promise;
-    if (serial !== pdfRenderSerial) return;
-    canvas.style.display = "block";
-    $("#readerPlaceholder").style.display = "none";
-    $("#readerFallbackOpen").classList.add("hidden");
+    pdfRenderTasks.set(pageNumber, renderTask);
+    await renderTask.promise;
+    if (serial !== pdfRenderSerial || documentToRender !== pdfDocument) return false;
+    frame.replaceChildren(canvas);
+    frame.dataset.rendered = renderKey;
+    canvas.dataset.rendered = "true";
+    return true;
   } catch (error) {
-    if (error?.name !== "RenderingCancelledException" && serial === pdfRenderSerial) {
-      showReaderPlaceholder("Preview unavailable", "This document could not be rendered inside the app. You can still open the original PDF in your browser.", true);
+    if (error?.name !== "RenderingCancelledException" && serial === pdfRenderSerial && frame.isConnected) {
+      frame.innerHTML = `<span class="pdf-page-error">Page ${pageNumber} could not be rendered.</span>`;
     }
+    return false;
   } finally {
-    if (serial === pdfRenderSerial) bookPage.classList.remove("turning");
+    pdfRenderTasks.delete(pageNumber);
+    delete frame.dataset.rendering;
   }
+}
+
+function visiblePdfPageNumbers() {
+  const stage = $("#bookStage");
+  const stageRect = stage.getBoundingClientRect();
+  return $$(".pdf-page-frame", $("#pdfPages"))
+    .filter(frame => {
+      const rect = frame.getBoundingClientRect();
+      return rect.bottom >= stageRect.top - stageRect.height && rect.top <= stageRect.bottom + stageRect.height;
+    })
+    .map(frame => Number(frame.dataset.pdfPage));
+}
+
+function renderNearbyPdfPages(pageNumber = currentPage) {
+  if (!pdfDocument) return;
+  const pages = new Set([...visiblePdfPageNumbers(), pageNumber - 1, pageNumber, pageNumber + 1]);
+  pages.forEach(number => {
+    if (number >= 1 && number <= pdfPreviewPageCount()) renderPdfPage(number);
+  });
+}
+
+function releaseDistantPdfPage(pageNumber) {
+  if (Math.abs(pageNumber - currentPage) <= 4 || pdfRenderTasks.has(pageNumber)) return;
+  const frame = pdfPageFrame(pageNumber);
+  if (!frame?.querySelector("canvas")) return;
+  frame.removeAttribute("style");
+  delete frame.dataset.rendered;
+  delete frame.dataset.rendering;
+  frame.innerHTML = `<span class="pdf-page-loading">Page ${pageNumber}</span>`;
+  sizePdfPagePlaceholder(frame);
+}
+
+function buildPdfPageFrames() {
+  if (!pdfDocument) return;
+  cancelPdfPageRenders();
+  pdfPageObserver?.disconnect();
+  const host = $("#pdfPages");
+  const fragment = document.createDocumentFragment();
+  const pageCount = pdfPreviewPageCount();
+  for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+    const frame = document.createElement("section");
+    frame.className = "pdf-page-frame";
+    frame.dataset.pdfPage = String(pageNumber);
+    frame.setAttribute("aria-label", `Page ${pageNumber} of ${pageCount}`);
+    frame.innerHTML = `<span class="pdf-page-loading">Page ${pageNumber}</span>`;
+    sizePdfPagePlaceholder(frame);
+    fragment.appendChild(frame);
+  }
+  host.replaceChildren(fragment);
+  $("#readerPlaceholder").style.display = "none";
+  if ("IntersectionObserver" in window) {
+    pdfPageObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const pageNumber = Number(entry.target.dataset.pdfPage);
+        if (entry.isIntersecting) renderPdfPage(pageNumber);
+        else releaseDistantPdfPage(pageNumber);
+      });
+    }, {root:$("#bookStage"), rootMargin:"100% 0px", threshold:0.01});
+    $$(".pdf-page-frame", host).forEach(frame => pdfPageObserver.observe(frame));
+  }
+  renderNearbyPdfPages(1);
+}
+
+function syncCurrentPageFromScroll() {
+  if (!pdfDocument || pdfScrollFrame) return;
+  pdfScrollFrame = requestAnimationFrame(() => {
+    pdfScrollFrame = 0;
+    const stage = $("#bookStage");
+    const stageRect = stage.getBoundingClientRect();
+    const reference = stageRect.top + Math.min(100, stageRect.height * 0.2);
+    let nearest = currentPage;
+    let distance = Infinity;
+    const frames = $$(".pdf-page-frame", $("#pdfPages"));
+    frames.forEach(frame => {
+      const rect = frame.getBoundingClientRect();
+      const nextDistance = Math.abs(rect.top - reference);
+      if (nextDistance < distance) { distance = nextDistance; nearest = Number(frame.dataset.pdfPage); }
+    });
+    if (nearest !== currentPage) {
+      currentPage = nearest;
+      syncReaderControls();
+    }
+    frames.forEach(frame => releaseDistantPdfPage(Number(frame.dataset.pdfPage)));
+    renderNearbyPdfPages(nearest);
+  });
+}
+
+async function goToPdfPage(pageNumber, behavior = "smooth") {
+  if (!pdfDocument) return;
+  currentPage = Math.max(1, Math.min(pdfPreviewPageCount(), Math.trunc(Number(pageNumber)) || 1));
+  syncReaderControls();
+  const frame = pdfPageFrame(currentPage);
+  frame?.scrollIntoView({behavior, block:"start", inline:"center"});
+  await renderPdfPage(currentPage);
+}
+
+function refreshPdfPageRendering() {
+  if (!pdfDocument) return;
+  cancelPdfPageRenders();
+  $$(".pdf-page-frame", $("#pdfPages")).forEach(frame => {
+    delete frame.dataset.rendered;
+    delete frame.dataset.rendering;
+    sizePdfPagePlaceholder(frame);
+  });
+  syncReaderControls();
+  renderNearbyPdfPages(currentPage);
+  requestAnimationFrame(() => pdfPageFrame(currentPage)?.scrollIntoView({block:"start", inline:"center"}));
+}
+
+async function preparePdfPages() {
+  if (!pdfDocument) return;
+  currentPage = 1;
+  syncReaderControls();
+  buildPdfPageFrames();
+  await goToPdfPage(1, "auto");
 }
 
 async function loadReaderPdf(url, loadToken) {
   await disposePdfDocument();
+  // Chromium deliberately blocks fetch(file://...) and ES-module imports from
+  // local files. When the app is opened directly from this Windows folder,
+  // hand the existing PDF to the browser's native viewer instead of reporting
+  // that the file is missing. HTTP(S) launches keep the full PDF.js reader.
+  if (location.protocol === "file:") {
+    if (loadToken !== pdfLoadToken) return false;
+    currentPdfUrl = url;
+    if (currentPdfDownloadUrl?.startsWith("blob:")) URL.revokeObjectURL(currentPdfDownloadUrl);
+    currentPdfDownloadUrl = url;
+    const nativeViewer = document.createElement("iframe");
+    nativeViewer.className = "native-file-pdf-viewer";
+    nativeViewer.src = url;
+    nativeViewer.title = currentPdf?.title || currentPdf?.fileName || "PDF document";
+    $("#pdfPages").replaceChildren(nativeViewer);
+    $("#readerPlaceholder").style.display = "none";
+    $("#readerDownload").disabled = false;
+    pdfZoom = 1;
+    syncReaderControls();
+    return true;
+  }
   const pdfjsLib = await loadPdfJs();
   if (loadToken !== pdfLoadToken) return false;
   showReaderPlaceholder("Loading document…", "Preparing the in-app PDF viewer.");
+  // Prefer the app's bundled path on every platform. Deployed Git LFS builds
+  // can fall back to /pdf-media, but Windows/LAN/PWA hosts are never forced
+  // through that route merely because their hostname differs from localhost.
   const {documentBytes, sourceUrl} = await fetchPdfBytes(url);
   if (loadToken !== pdfLoadToken) return false;
   currentPdfUrl = sourceUrl;
-  $("#readerDownload").href = sourceUrl;
-  $("#readerFallbackOpen").href = sourceUrl;
+  if (currentPdfDownloadUrl?.startsWith("blob:")) URL.revokeObjectURL(currentPdfDownloadUrl);
+  currentPdfDownloadUrl = URL.createObjectURL(new Blob([documentBytes], {type:"application/pdf"}));
+  $("#readerDownload").disabled = false;
   const loadingTask = pdfjsLib.getDocument({data:documentBytes, isEvalSupported:false});
   pdfLoadingTask = loadingTask;
   const loadedDocument = await loadingTask.promise;
@@ -824,34 +1030,25 @@ async function loadReaderPdf(url, loadToken) {
   pdfDocument = loadedDocument;
   pdfZoom = 1;
   syncReaderControls();
-  if ($("#pdfModal").classList.contains("open")) await renderPdfPage();
+  if ($("#pdfModal").classList.contains("open")) await preparePdfPages();
   return true;
 }
 
 function readerDownloadName() {
-  const raw = currentPdf?.fileName || currentPdf?.title || "Sanjay-Physics-document.pdf";
-  return /\.pdf$/i.test(raw) ? raw : `${raw}.pdf`;
+  const candidate = currentPdf?.fileName || currentPdf?.title || "Sanjay Physics document";
+  const safeName = String(candidate).replace(/[\\/:*?"<>|]/g, "-").trim() || "Sanjay Physics document";
+  return /\.pdf$/i.test(safeName) ? safeName : `${safeName}.pdf`;
 }
 
-async function downloadCurrentPdf(event) {
-  event.preventDefault();
-  if (!currentPdfUrl) return;
-  const link = event.currentTarget;
-  link.setAttribute("aria-busy", "true");
-  try {
-    const response = await fetch(currentPdfUrl);
-    if (!response.ok) throw new Error(`Download failed with ${response.status}`);
-    const downloadUrl = URL.createObjectURL(await response.blob());
-    const anchor = document.createElement("a");
-    anchor.href = downloadUrl;
-    anchor.download = readerDownloadName();
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
-  } catch {
-    toast("This PDF could not be downloaded. Try opening the original document.", true);
-  } finally { link.removeAttribute("aria-busy"); }
+function downloadCurrentPdf() {
+  if (!currentPdfDownloadUrl || !currentPdf) return;
+  const link = document.createElement("a");
+  link.href = currentPdfDownloadUrl;
+  link.download = readerDownloadName();
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 async function selectReaderDocument(id, announceError = true) {
@@ -869,17 +1066,14 @@ async function selectReaderDocument(id, announceError = true) {
     activePdfObjectUrl = nextUrl.startsWith("blob:") ? nextUrl : null;
     currentPdf = nextPdf;
     currentPdfUrl = nextUrl;
+    $("#readerDownload").disabled = true;
     currentPage = 1;
     $("#readerTitle").textContent = nextPdf.title || nextPdf.documentLabel || "PDF document";
     $("#readerClass").textContent = `${nextPdf.className} • ${nextPdf.chapter}`;
-    $("#readerDownload").href = nextUrl;
-    $("#readerDownload").download = readerDownloadName();
-    $("#readerDownload").classList.remove("hidden");
-    $("#readerFallbackOpen").href = nextUrl;
     renderReaderDocumentTabs();
     return await loadReaderPdf(nextUrl, loadToken);
   } catch {
-    showReaderPlaceholder("Preview unavailable", "This PDF file is unavailable on this device.", Boolean(currentPdfUrl));
+    showReaderPlaceholder("Preview unavailable", "This PDF file is unavailable on this device.");
     if (announceError) toast("This PDF file is unavailable on this device.", true);
     return false;
   }
@@ -891,15 +1085,22 @@ async function openPdf(id) {
   const requested = collection.find(pdf => pdf.id === id);
   if (!requested) return;
   readerDocuments = collection.filter(pdf => pdf.className === requested.className && pdf.chapter === requested.chapter && hasPdfSource(pdf));
+  showReaderPlaceholder("Loading document…", "Preparing the in-app PDF viewer.");
+  openModal("pdfModal");
+  history.pushState({...history.state, sspOverlay:"pdf", sspCanGoBack:true}, "", location.href);
   const opened = await selectReaderDocument(id);
   if (opened) {
-    openModal("pdfModal");
-    history.pushState({...history.state, sspOverlay:"pdf", sspCanGoBack:true}, "", location.href);
-    requestAnimationFrame(()=>renderPdfPage());
+    requestAnimationFrame(()=>preparePdfPages());
   }
 }
 
-function updateReader(direction = 0) { return renderPdfPage(direction); }
+function updateReader() { return goToPdfPage(currentPage); }
+
+function changePdfPage(offset) {
+  if (!pdfDocument) return;
+  currentPage = Math.max(1, Math.min(pdfPreviewPageCount(), (Number(currentPage) || 1) + offset));
+  updateReader();
+}
 
 function startQuiz() {
   activeQuiz = filtered(data.quizzes);
@@ -979,17 +1180,12 @@ function closeModal(modal) {
     exitReaderFullscreen();
     pdfLoadToken++;
     disposePdfDocument();
-    const canvas = $("#pdfCanvas");
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.width = 1;
-    canvas.height = 1;
-    $("#bookPage").removeAttribute("style");
-    $("#readerDownload").removeAttribute("href");
-    $("#readerDownload").classList.add("hidden");
-    $("#readerFallbackOpen").removeAttribute("href");
+    hidePdfProtection();
     if (activePdfObjectUrl) URL.revokeObjectURL(activePdfObjectUrl);
     activePdfObjectUrl=null;
+    if (currentPdfDownloadUrl?.startsWith("blob:")) URL.revokeObjectURL(currentPdfDownloadUrl);
+    currentPdfDownloadUrl=null;
+    $("#readerDownload").disabled=true;
     currentPdfUrl="";
     currentPdf=null;
     readerDocuments=[];
@@ -1052,31 +1248,27 @@ async function handleLogin(event) {
   $("#loginView").classList.add("hidden"); $("#adminDashboard").classList.remove("hidden"); renderAll(); toast(configuredHash ? "Admin dashboard unlocked" : "Admin PIN created successfully");
 }
 
-function requestLogoutConfirmation() {
-  if (!isAdmin) { openAdmin(); return; }
-  $("#logoutError").textContent = "";
-  openModal("logoutConfirmModal");
+function clearApplicationAuthentication() {
+  try{sessionStorage.removeItem(SESSION_KEY);}catch{/* Keep the interface locked even when browser storage is unavailable. */}
+  try{sessionStorage.removeItem(ADMIN_TOKEN_KEY);}catch{/* Keep the interface locked even when browser storage is unavailable. */}
+  isAdmin = false;
+  renderAll();
 }
 
-function cancelLogout() { closeModal($("#logoutConfirmModal")); }
+function showExitScreen() {
+  document.body.classList.add("app-exited");
+  $("#exitScreen").classList.remove("hidden");
+  document.body.style.overflow = "";
+  document.title = "App Closed — Sanjay Singh Physics";
+  requestAnimationFrame(()=>$("#exitScreen").focus());
+}
 
-function confirmLogout() {
-  const button = $("#confirmLogoutBtn");
-  button.disabled = true;
-  $("#logoutError").textContent = "";
-  try {
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-    if (sessionStorage.getItem(SESSION_KEY) || sessionStorage.getItem(ADMIN_TOKEN_KEY)) throw new Error("The browser did not clear the admin credentials.");
-    isAdmin = false;
-    renderAll();
-    closeModal($("#logoutConfirmModal"));
-    if ($("#adminModal").classList.contains("open")) closeModal($("#adminModal"));
-    openAdmin();
-    toast("Admin session closed securely");
-  } catch (error) {
-    $("#logoutError").textContent = error.message || "Logout could not be completed. Please try again.";
-  } finally { button.disabled = false; }
+function exitApplication() {
+  if ($("#pdfModal").classList.contains("open")) closeModal($("#pdfModal"));
+  clearApplicationAuthentication();
+  try{sessionStorage.clear();sessionStorage.setItem(APP_EXITED_KEY, "true");}catch{/* The current page still exits securely in memory. */}
+  showExitScreen();
+  try{window.close();}catch{/* Browsers normally reject closing tabs they did not open. */}
 }
 
 function setAdminTab(name) {
@@ -1351,7 +1543,7 @@ function initEvents() {
     if(boardLeg){showBoardPage(true);$$('.nav-subleg').forEach(button=>button.classList.toggle('active',button===boardLeg));requestAnimationFrame(()=>{$(".board-library")?.scrollIntoView({behavior:"smooth",block:"start"});if(boardLeg.dataset.boardView==="search")setTimeout(()=>$("#boardLibrarySearch")?.focus(),450);});return;}
     const boardTab=e.target.closest("[data-board-nav]");if(boardTab){const shouldExpand=toggleNavigationBranch(boardTab);if(shouldExpand)showBoardPage(true);return;}
     const tab=e.target.closest(".class-tab[data-class]");
-    if(tab){openClassDashboard(tab.dataset.class);}
+    if(tab)toggleNavigationBranch(tab);
   });
   $("#librarySearch").addEventListener("input",renderPdfs); $("#pdfChapterFilter").addEventListener("change",renderPdfs);
   $("#boardLibrarySearch")?.addEventListener("input",renderBoardQuestions); $("#boardChapterFilter")?.addEventListener("change",renderBoardQuestions);
@@ -1373,7 +1565,6 @@ function initEvents() {
     const readerTab=e.target.closest("[data-reader-pdf]");if(readerTab)selectReaderDocument(readerTab.dataset.readerPdf);
     const close=e.target.closest("[data-close-modal]");if(close){const modal=close.closest(".modal");if(modal?.id==="pdfModal")closePdfFromUser();else closeModal(modal);}
     if(e.target.closest("[data-cancel-delete]"))cancelDelete();
-    if(e.target.closest("[data-cancel-logout]"))cancelLogout();
   });
   document.addEventListener("change", e => {
     const input=e.target.closest("input[type='file'][data-max-bytes]");
@@ -1382,26 +1573,66 @@ function initEvents() {
     if(boardInput?.files?.length) uploadBoardPdf(boardInput.dataset.boardUpload,selectedFiles(boardInput),boardInput);
   });
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!fullscreenElement()){$$(".modal.open").forEach(modal=>modal.id==="pdfModal"?closePdfFromUser():closeModal(modal));}const card=e.target.closest?.("[data-open-pdf]");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(card.dataset.openPdf);}const boardCard=e.target.closest?.("[data-open-board-pdf]");if(boardCard&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(boardCard.dataset.openBoardPdf);}});
-  $("#adminLoginBtn").addEventListener("click",()=>openAdmin()); $("#loginForm").addEventListener("submit",handleLogin); $("#logoutBtn").addEventListener("click",requestLogoutConfirmation);
-  $("#headerLogoutBtn").addEventListener("click",requestLogoutConfirmation); $("#confirmLogoutBtn").addEventListener("click",confirmLogout); $("#cancelLogoutBtn").addEventListener("click",cancelLogout);
+  $("#adminLoginBtn").addEventListener("click",()=>openAdmin()); $("#loginForm").addEventListener("submit",handleLogin);
+  $("#exitAppBtn").addEventListener("click",exitApplication);
   $("#learningViewBack").addEventListener("click",goBackFromLearningView);
   $("#passwordToggle").addEventListener("click",()=>setPasswordVisibility($("#adminPin").type === "password"));
   $("#confirmDeleteBtn").addEventListener("click",confirmDeleteItem);
   $$("[data-admin-tab]").forEach(btn=>btn.addEventListener("click",()=>setAdminTab(btn.dataset.adminTab)));
   $("#startQuizBtn").addEventListener("click",startQuiz); $("#startMixedQuiz").addEventListener("click",()=>{$("#quiz").scrollIntoView({behavior:"smooth"});startQuiz();}); $("#exitQuizBtn").addEventListener("click",exitQuiz);
-  $("#prevPage").addEventListener("click",()=>{if(pdfDocument&&currentPage>1){currentPage--;updateReader(-1);}});
-  $("#nextPage").addEventListener("click",()=>{if(pdfDocument&&currentPage<pdfDocument.numPages){currentPage++;updateReader(1);}});
-  $("#pageNumber").addEventListener("change",e=>{currentPage=Number(e.target.value);updateReader();});
-  $("#zoomOutBtn").addEventListener("click",()=>{if(!pdfDocument)return;pdfZoom=Math.max(0.5,pdfZoom-0.25);updateReader();});
-  $("#zoomInBtn").addEventListener("click",()=>{if(!pdfDocument)return;pdfZoom=Math.min(3,pdfZoom+0.25);updateReader();});
-  $("#zoomFitBtn").addEventListener("click",()=>{if(!pdfDocument)return;pdfZoom=1;updateReader();});
+  $("#prevPage").addEventListener("click",async()=>{
+    if(!pdfDocument)return;
+    const targetPage=Math.max(1,Math.min(pdfPreviewPageCount(),(Number(currentPage)||1)-1));
+    currentPage=targetPage;
+    syncReaderControls();
+    await goToPdfPage(targetPage,"auto");
+    currentPage=targetPage;
+    syncReaderControls();
+    await renderPdfPage(targetPage);
+  });
+  $("#nextPage").addEventListener("click",async()=>{
+    if(!pdfDocument)return;
+    const targetPage=Math.max(1,Math.min(pdfPreviewPageCount(),(Number(currentPage)||1)+1));
+    currentPage=targetPage;
+    syncReaderControls();
+    await goToPdfPage(targetPage,"auto");
+    currentPage=targetPage;
+    syncReaderControls();
+    await renderPdfPage(targetPage);
+  });
+  $("#pageNumber").addEventListener("change",e=>goToPdfPage(e.target.value));
+  $("#zoomOutBtn").addEventListener("click",async()=>{if(!pdfDocument)return;pdfZoom=Math.max(0.5,Math.round((pdfZoom-0.25)*100)/100);refreshPdfPageRendering();await renderPdfPage(currentPage);});
+  $("#zoomInBtn").addEventListener("click",async()=>{if(!pdfDocument)return;pdfZoom=Math.min(3,Math.round((pdfZoom+0.25)*100)/100);refreshPdfPageRendering();await renderPdfPage(currentPage);});
+  $("#zoomFitBtn").addEventListener("click",async()=>{if(!pdfDocument)return;pdfZoom=1;refreshPdfPageRendering();await renderPdfPage(currentPage);});
+  $("#bookStage").addEventListener("scroll",syncCurrentPageFromScroll,{passive:true});
   $("#readerDownload").addEventListener("click",downloadCurrentPdf);
   $("#readerFullscreenBtn").addEventListener("click",toggleReaderFullscreen);
-  const syncFullscreenAndRender = () => { syncReaderFullscreenButton(); if(pdfDocument)requestAnimationFrame(()=>renderPdfPage()); };
+  const protectedReaderAction = (event, message) => { event.preventDefault(); event.stopPropagation(); showPdfProtection(message); };
+  const pdfModal = $("#pdfModal");
+  pdfModal.addEventListener("contextmenu",event=>protectedReaderAction(event,"Right-click is disabled for protected documents."));
+  pdfModal.addEventListener("copy",event=>protectedReaderAction(event,"Copying is disabled for protected documents."));
+  pdfModal.addEventListener("cut",event=>protectedReaderAction(event,"Copying is disabled for protected documents."));
+  pdfModal.addEventListener("selectstart",event=>protectedReaderAction(event,"Text selection is disabled for protected documents."));
+  pdfModal.addEventListener("dragstart",event=>protectedReaderAction(event,"Dragging protected PDF content is disabled."));
+  document.addEventListener("keydown",event=>{
+    if(!pdfModal.classList.contains("open"))return;
+    const shortcut=(event.ctrlKey||event.metaKey)?event.key.toLowerCase():"";
+    if(shortcut==="p")protectedReaderAction(event,"Printing is disabled for protected documents.");
+    else if(shortcut==="c")protectedReaderAction(event,"Copying is disabled for protected documents.");
+    else if(event.key==="PrintScreen")showPdfProtection("Screen capture cannot be authorized for protected documents.",1600);
+  },true);
+  window.addEventListener("beforeprint",()=>{if(pdfModal.classList.contains("open")){document.body.classList.add("pdf-print-protected");showPdfProtection("Printing is disabled for protected documents.",0);}});
+  window.addEventListener("afterprint",()=>{document.body.classList.remove("pdf-print-protected");hidePdfProtection();});
+  document.addEventListener("visibilitychange",()=>{
+    if(!pdfModal.classList.contains("open"))return;
+    if(document.hidden)showPdfProtection("Protected document hidden while the app is inactive.",0);
+    else setTimeout(hidePdfProtection,250);
+  });
+  const syncFullscreenAndRender = () => { syncReaderFullscreenButton(); if(pdfDocument)requestAnimationFrame(refreshPdfPageRendering); };
   document.addEventListener("fullscreenchange",syncFullscreenAndRender);
   document.addEventListener("webkitfullscreenchange",syncFullscreenAndRender);
   let readerResizeTimer;
-  window.addEventListener("resize",()=>{if(!pdfDocument||!$("#pdfModal").classList.contains("open"))return;clearTimeout(readerResizeTimer);readerResizeTimer=setTimeout(()=>renderPdfPage(),120);});
+  window.addEventListener("resize",()=>{if(!pdfDocument||!$("#pdfModal").classList.contains("open"))return;clearTimeout(readerResizeTimer);readerResizeTimer=setTimeout(refreshPdfPageRendering,120);});
   $("#searchBtn").addEventListener("click",()=>{navigateToLearningView(activeClass,"pdfs");setTimeout(()=>$("#librarySearch").focus(),150);});
   $("#boardQuestionsBtn").addEventListener("click",()=>showBoardPage(true));
   $("#boardBackBtn").addEventListener("click",()=>history.state?.sspCanGoBack?history.back():setLearningView({view:"home",className:activeClass,target:""},{historyMode:"replace"}));
@@ -1486,7 +1717,9 @@ function initPwa() {
 }
 
 function init(){
-  $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();validateAdminSession();syncQuestionDeletions();
+  $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();
+  if(sessionStorage.getItem(APP_EXITED_KEY)==="true"){clearApplicationAuthentication();showExitScreen();return;}
+  validateAdminSession();syncQuestionDeletions();
   if(location.hash === "#cbse-board-questions"){
     history.replaceState({sspBoard:true,sspCanGoBack:false},"",location.href);
     showBoardPage(true,false);
