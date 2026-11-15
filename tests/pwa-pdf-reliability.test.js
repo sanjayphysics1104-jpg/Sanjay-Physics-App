@@ -66,7 +66,7 @@ test("service worker bypasses PDFs and byte ranges but handles navigations", asy
   listeners.activate({waitUntil(value){ activation = value; }});
   await activation;
   assert.deepEqual(deletedCaches.sort(), ["sanjay-physics-v58-offline-pdf-corpus", "sanjay-physics-v62-native-install-flow", "sanjay-physics-v63-canonical-startup", "sanjay-physics-v64-pdfjs-viewer", "sanjay-physics-v65-same-origin-pdf", "sanjay-physics-v66-pdf-proxy-route", "sanjay-physics-v67-pdf-single-response", "sanjay-physics-v68-pdf-byte-transfer", "sanjay-physics-v69-full-screen-navigation", "sanjay-physics-v70-logout-messages", "sanjay-physics-v71-exit-pdf-protection", "sanjay-physics-v72-dynamic-side-menu", "sanjay-physics-v73-desktop-pdf-exit", "sanjay-physics-v74-pdf-device-fix"]);
-  assert.match(worker, /v76-critical-ai-file-pdf-preview/);
+  assert.match(worker, /v78-pdf-download-password/);
   assert.match(worker, /const OFFLINE_URL = "\/"/);
   assert.doesNotMatch(worker, /["']\.\/index\.html["']/);
   assert.match(worker, /cache\.addAll\(CORE_SHELL\)/);
@@ -118,7 +118,13 @@ test("reader renders PDFs in-app, resolves desktop paths with fallback, and down
   assert.match(script, /function goToPdfPage\(/);
   assert.match(script, /function refreshPdfPageRendering\(/);
   assert.match(script, /canvas\.dataset\.rendered = "true"/);
-  assert.match(script, /function downloadCurrentPdf\(/);
+  assert.match(html, /id="downloadPasswordModal"/);
+  assert.match(html, /id="downloadPassword"[^>]*type="password"/);
+  assert.match(script, /function triggerCurrentPdfDownload\(/);
+  assert.match(script, /function requestPdfDownload\(/);
+  assert.match(script, /function handleDownloadPassword\(/);
+  assert.match(script, /\$\("#downloadPassword"\)\.value !== "951206"/);
+  assert.match(script, /\$\("#readerDownload"\)\.addEventListener\("click",requestPdfDownload\)/);
   assert.match(script, /new Blob\(\[documentBytes\], \{type:"application\/pdf"\}\)/);
   assert.match(script, /link\.download = readerDownloadName\(\)/);
   assert.doesNotMatch(script, /!\["localhost","127\.0\.0\.1"\]\.includes\(location\.hostname\)/);

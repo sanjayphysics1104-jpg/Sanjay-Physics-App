@@ -56,6 +56,6 @@ test("all source CBSE PDFs are imported byte-for-byte and mapped to existing cha
 test("the import is isolated to the existing CBSE board-question collection", () => {
   const script = fs.readFileSync(path.join(root, "script.js"), "utf8");
   assert.match(script, /const IMPORTED_CBSE_BOARD_PDF_PATH = "assets\/pdfs\/class-12\/cbse-question-banks\/chapter-wise-import";/);
-  assert.match(script, /boardQuestions:\s*\[\.\.\.RECOVERED_CBSE_BOARD_QUESTIONS,\s*\.\.\.IMPORTED_CBSE_BOARD_PDFS\]/);
+  assert.match(script, /boardQuestions:\s*\[\.\.\.IMPORTED_CBSE_BOARD_PDFS\]/);
   assert.match(script, /IMPORTED_CBSE_BOARD_PDFS\.forEach\(imported =>/);
 });

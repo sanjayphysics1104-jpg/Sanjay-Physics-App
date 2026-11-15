@@ -105,6 +105,40 @@ const IMPORTED_QUESTION_BANK_PDFS = [
     isImportedStatic:true
   };
 });
+const DPP_TEST_SERIES_PATH = "DPP-TEST SERIES";
+const DPP_TEST_SERIES = [
+  ["DPP-1- MOTION IN A STRAIGHT LINE 1.pdf",1,"Motion in a Straight Line",7,1],
+  ["DPP-2-MOTION IN A PLANE-1.pdf",2,"Motion in a Plane",8,1],
+  ["DPP-3-LAWS OF MOTION-1.pdf",3,"Laws of Motion",7,1],
+  ["DPP-4-LAWS OF MOTION-2.pdf",4,"Laws of Motion",7,2],
+  ["DPP-5- LAWS OF MOTION-3 (Friction).pdf",5,"Laws of Motion (Friction)",7,3],
+  ["DPP-6-Work, Energy and Power-1.pdf",6,"Work, Energy and Power",7,1],
+  ["DPP-6 -Work, Energy and Power-2.pdf",6,"Work, Energy and Power",8,2],
+  ["DPP-7-Centre of mass and its motion.pdf",7,"Centre of Mass and Its Motion",7,1],
+  ["DPP-8-Rotational Motion – 1.pdf",8,"Rotational Motion",7,1],
+  ["DPP-9-Rotational Motion-2.pdf",9,"Rotational Motion",7,2],
+  ["DPP-10-Rotational Motion - 3.pdf",10,"Rotational Motion",7,3],
+  ["DPP-11-Gravitation - 1.pdf",11,"Gravitation",7,1],
+  ["DPP-12- Gravitation - 2.pdf",12,"Gravitation",7,2],
+  ["DPP-13-Mechanical Properties of solids.pdf",13,"Mechanical Properties of Solids",6,1],
+  ["DPP-14-Fluid Mechanics.pdf",14,"Fluid Mechanics",6,1],
+  ["DPP-15- Thermal Expansion, Calorimetry and Change of State.pdf",15,"Thermal Expansion, Calorimetry and Change of State",7,1],
+  ["DPP-16- Heat transfer & Newton’s law of cooling.pdf",16,"Heat Transfer and Newton’s Law of Cooling",8,1]
+].map(([fileName,dppNumber,chapter,pages,chapterPart],index) => ({
+  id:`neet-jee-dpp-${String(index + 1).padStart(2,"0")}`,
+  className:"NEET / JEE",
+  chapter,
+  title:`DPP ${dppNumber} — ${chapter}`,
+  fileName,
+  url:`${DPP_TEST_SERIES_PATH}/${fileName}`,
+  count:0,
+  pages,
+  dppNumber,
+  chapterPart,
+  isDpp:true,
+  isFree:dppNumber <= 3,
+  isImportedStatic:true
+}));
 const LEGACY_CLASS_12_PDF_PATH = "assets/pdfs/class-12/legacy";
 const RECOVERED_CLASS_12_PDFS = [
   {id:"legacy-12-electric-charges-fields",chapter:"Electric Charges and Fields",title:"Electric Charges and Fields",fileName:"ELECTRIC CHARGES AND FIELDS.pdf",pages:1},
@@ -270,7 +304,8 @@ const DEFAULT_DATA = {
     {id:"b7",className:"Class 11th",chapter:"Kinematics",title:"Kinematics Problem Set",count:45,url:""},
     {id:"b8",className:"Class 12th",chapter:"Electrostatics",title:"Electrostatics Problems",count:42,url:""},
     {id:"b9",className:"NEET / JEE",chapter:"Mechanics",title:"Mechanics PYQ Drill",count:60,url:""},
-    ...IMPORTED_QUESTION_BANK_PDFS
+    ...IMPORTED_QUESTION_BANK_PDFS,
+    ...DPP_TEST_SERIES
   ],
   quizzes: [
     {id:"q1",className:"Class 9th",chapter:"Motion",question:"Which quantity describes the shortest distance from the initial to the final position?",options:["Distance","Displacement","Speed","Path length"],answer:1,explanation:"Displacement is the straight-line change in position, including direction."},
@@ -314,6 +349,7 @@ let pdfJsPromise = null;
 let pdfProtectionTimer = null;
 let pdfPageObserver = null;
 let pdfScrollFrame = 0;
+let pendingDppPdfId = "";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -341,6 +377,11 @@ function loadData() {
     IMPORTED_QUESTION_BANK_PDFS.forEach(imported => {
       const existing = saved.questionBanks.find(pdf => pdf.className === imported.className && (pdf.fileName === imported.fileName || pdf.url === imported.url));
       if (existing) existing.fallbackUrl = imported.url;
+      else saved.questionBanks.push(cloneContentData(imported));
+    });
+    DPP_TEST_SERIES.forEach(imported => {
+      const existing = saved.questionBanks.find(pdf => pdf.id === imported.id || (pdf.className === imported.className && pdf.fileName === imported.fileName));
+      if (existing) Object.assign(existing, cloneContentData(imported));
       else saved.questionBanks.push(cloneContentData(imported));
     });
     return saved;
@@ -491,11 +532,25 @@ function updateChapterSuggestions(category = $("#pdfForm")?.elements.namedItem("
 
 function renderQuestionBanks() {
   const items = filtered(data.questionBanks).filter(hasPdfSource);
-  $("#questionBankGrid").innerHTML = items.length ? items.map((item, index) => `
-    <article class="content-card bank-card" data-open-bank="${item.id}">
+  const dppItems = items.filter(item => item.isDpp).sort((a,b) => Number(a.dppNumber) - Number(b.dppNumber) || Number(a.chapterPart) - Number(b.chapterPart));
+  const regularItems = items.filter(item => !item.isDpp);
+  const dppChapterGroups = dppItems.reduce((groups, item) => {
+    let group = groups.find(entry => entry.chapter === item.chapter);
+    if (!group) { group = {chapter:item.chapter, items:[]}; groups.push(group); }
+    group.items.push(item);
+    return groups;
+  }, []);
+  const renderCard = (item, index) => `
+    <article class="content-card bank-card${item.isDpp ? " dpp-card" : ""}" data-open-bank="${item.id}" tabindex="0" role="button" aria-label="Open ${escapeHTML(item.title)}">
       ${isAdmin ? `<button class="delete-btn" type="button" data-delete="questionBanks" data-id="${item.id}" data-question-id="${item.id}" aria-label="Delete question set: ${escapeHTML(item.title)}">Delete</button>` : ""}
-      <span class="bank-number">${String(index + 1).padStart(2,"0")}</span><div><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.chapter)} • ${item.isImportedStatic ? `${Number(item.pages) || 1}-page PDF with questions and solutions` : `${Number(item.count)} questions with solutions`}</p></div><span class="arrow">→</span>
-    </article>`).join("") : emptyState("No question sets yet", "New practice sets will appear here.");
+      <span class="bank-number">${item.isDpp ? `D${item.dppNumber}` : String(index + 1).padStart(2,"0")}</span>
+      <div class="bank-card-copy"><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.chapter)} • ${item.isImportedStatic ? `${Number(item.pages) || 1}-page PDF` : `${Number(item.count)} questions with solutions`}</p>${item.isDpp ? `<small class="dpp-original-name">${escapeHTML(item.fileName)}</small>` : ""}</div>
+      ${item.isDpp ? `<span class="dpp-access-badge ${item.isFree ? "is-free" : "is-locked"}">${item.isFree ? "FREE" : "🔒 PASSWORD"}</span>` : ""}<span class="arrow">→</span>
+    </article>`;
+  const groups = [];
+  if (dppItems.length) groups.push(`<section class="question-bank-group dpp-series-group"><div class="question-bank-group-heading"><div><span class="section-kicker">DPP TEST SERIES</span><h3>Chapter-wise NEET & JEE DPPs</h3></div><span>${dppItems.length} PDFs • DPP 1–3 Free</span></div><div class="dpp-chapter-groups">${dppChapterGroups.map(group => `<section class="dpp-chapter-group"><div class="dpp-chapter-heading"><h4>${escapeHTML(group.chapter)}</h4><span>${group.items.length} DPP${group.items.length === 1 ? "" : "s"}</span></div><div class="dpp-sequence">${group.items.map(renderCard).join("")}</div></section>`).join("")}</div></section>`);
+  if (regularItems.length) groups.push(`<section class="question-bank-group"><div class="question-bank-group-heading"><div><span class="section-kicker">MORE PRACTICE</span><h3>Question Sets</h3></div></div><div class="dpp-sequence">${regularItems.map(renderCard).join("")}</div></section>`);
+  $("#questionBankGrid").innerHTML = groups.length ? groups.join("") : emptyState("No question sets yet", "New practice sets will appear here.");
 }
 
 function updateStats() {
@@ -666,6 +721,36 @@ function readerCollectionFor(id) {
   if (data.boardQuestions.some(pdf => pdf.id === id)) return "boardQuestions";
   if (data.questionBanks.some(pdf => pdf.id === id)) return "questionBanks";
   return "pdfs";
+}
+
+function protectedDppFor(id) {
+  return data.questionBanks.find(pdf => pdf.id === id && pdf.isDpp && !pdf.isFree);
+}
+
+function requestDppPassword(id) {
+  const item = protectedDppFor(id);
+  if (!item) { openPdf(id, true); return; }
+  pendingDppPdfId = id;
+  $("#dppPasswordTitle").textContent = `Unlock DPP ${item.dppNumber}`;
+  $("#dppPasswordMeta").textContent = item.chapter;
+  $("#dppPassword").value = "";
+  $("#dppPasswordError").textContent = "";
+  openModal("dppPasswordModal");
+  setTimeout(() => $("#dppPassword").focus(), 100);
+}
+
+function handleDppPassword(event) {
+  event.preventDefault();
+  if ($("#dppPassword").value !== "951206") {
+    $("#dppPasswordError").textContent = "Incorrect password. Please try again.";
+    $("#dppPassword").select();
+    return;
+  }
+  const id = pendingDppPdfId;
+  pendingDppPdfId = "";
+  closeModal($("#dppPasswordModal"));
+  if ($("#pdfModal").classList.contains("open")) selectReaderDocument(id);
+  else openPdf(id, true);
 }
 
 function readerTabName(pdf, index) {
@@ -1040,7 +1125,7 @@ function readerDownloadName() {
   return /\.pdf$/i.test(safeName) ? safeName : `${safeName}.pdf`;
 }
 
-function downloadCurrentPdf() {
+function triggerCurrentPdfDownload() {
   if (!currentPdfDownloadUrl || !currentPdf) return;
   const link = document.createElement("a");
   link.href = currentPdfDownloadUrl;
@@ -1049,6 +1134,38 @@ function downloadCurrentPdf() {
   document.body.appendChild(link);
   link.click();
   link.remove();
+}
+
+function downloadNeedsPassword() {
+  return ["Class 9th", "Class 10th", "Class 11th", "Class 12th"].includes(currentPdf?.className);
+}
+
+function cancelDownloadPassword() {
+  $("#downloadPassword").value = "";
+  $("#downloadPasswordError").textContent = "";
+  closeModal($("#downloadPasswordModal"));
+  if ($("#pdfModal").classList.contains("open")) document.body.style.overflow = "hidden";
+}
+
+function requestPdfDownload() {
+  if (!currentPdfDownloadUrl || !currentPdf) return;
+  if (!downloadNeedsPassword()) { triggerCurrentPdfDownload(); return; }
+  $("#downloadPassword").value = "";
+  $("#downloadPasswordError").textContent = "";
+  $("#downloadPasswordDocument").textContent = currentPdf.fileName || currentPdf.title || "PDF document";
+  openModal("downloadPasswordModal");
+  setTimeout(() => $("#downloadPassword").focus(), 100);
+}
+
+function handleDownloadPassword(event) {
+  event.preventDefault();
+  if ($("#downloadPassword").value !== "951206") {
+    $("#downloadPasswordError").textContent = "Incorrect password. Download blocked.";
+    $("#downloadPassword").select();
+    return;
+  }
+  cancelDownloadPassword();
+  triggerCurrentPdfDownload();
 }
 
 async function selectReaderDocument(id, announceError = true) {
@@ -1079,7 +1196,8 @@ async function selectReaderDocument(id, announceError = true) {
   }
 }
 
-async function openPdf(id) {
+async function openPdf(id, accessGranted = false) {
+  if (protectedDppFor(id) && !accessGranted) { requestDppPassword(id); return; }
   currentPdfCollection = readerCollectionFor(id);
   const collection = data[currentPdfCollection];
   const requested = collection.find(pdf => pdf.id === id);
@@ -1562,9 +1680,10 @@ function initEvents() {
     const edit=e.target.closest("[data-edit-quiz]");if(edit)editQuiz(edit.dataset.editQuiz);
     const option=e.target.closest("[data-option]");if(option)answerQuiz(Number(option.dataset.option));
     if(e.target.id==="nextQuestionBtn")nextQuizQuestion();if(e.target.id==="retryQuizBtn")startQuiz();
-    const readerTab=e.target.closest("[data-reader-pdf]");if(readerTab)selectReaderDocument(readerTab.dataset.readerPdf);
+    const readerTab=e.target.closest("[data-reader-pdf]");if(readerTab){const id=readerTab.dataset.readerPdf;protectedDppFor(id)?requestDppPassword(id):selectReaderDocument(id);}
     const close=e.target.closest("[data-close-modal]");if(close){const modal=close.closest(".modal");if(modal?.id==="pdfModal")closePdfFromUser();else closeModal(modal);}
     if(e.target.closest("[data-cancel-delete]"))cancelDelete();
+    if(e.target.closest("[data-cancel-download]"))cancelDownloadPassword();
   });
   document.addEventListener("change", e => {
     const input=e.target.closest("input[type='file'][data-max-bytes]");
@@ -1572,8 +1691,10 @@ function initEvents() {
     const boardInput=e.target.closest("[data-board-upload]");
     if(boardInput?.files?.length) uploadBoardPdf(boardInput.dataset.boardUpload,selectedFiles(boardInput),boardInput);
   });
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!fullscreenElement()){$$(".modal.open").forEach(modal=>modal.id==="pdfModal"?closePdfFromUser():closeModal(modal));}const card=e.target.closest?.("[data-open-pdf]");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(card.dataset.openPdf);}const boardCard=e.target.closest?.("[data-open-board-pdf]");if(boardCard&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(boardCard.dataset.openBoardPdf);}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!fullscreenElement()){if($("#downloadPasswordModal").classList.contains("open")){cancelDownloadPassword();return;}$$(".modal.open").forEach(modal=>modal.id==="pdfModal"?closePdfFromUser():closeModal(modal));}const card=e.target.closest?.("[data-open-pdf]");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(card.dataset.openPdf);}const boardCard=e.target.closest?.("[data-open-board-pdf]");if(boardCard&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(boardCard.dataset.openBoardPdf);}});
   $("#adminLoginBtn").addEventListener("click",()=>openAdmin()); $("#loginForm").addEventListener("submit",handleLogin);
+  $("#dppPasswordForm").addEventListener("submit",handleDppPassword);
+  $("#downloadPasswordForm").addEventListener("submit",handleDownloadPassword);
   $("#exitAppBtn").addEventListener("click",exitApplication);
   $("#learningViewBack").addEventListener("click",goBackFromLearningView);
   $("#passwordToggle").addEventListener("click",()=>setPasswordVisibility($("#adminPin").type === "password"));
@@ -1605,7 +1726,7 @@ function initEvents() {
   $("#zoomInBtn").addEventListener("click",async()=>{if(!pdfDocument)return;pdfZoom=Math.min(3,Math.round((pdfZoom+0.25)*100)/100);refreshPdfPageRendering();await renderPdfPage(currentPage);});
   $("#zoomFitBtn").addEventListener("click",async()=>{if(!pdfDocument)return;pdfZoom=1;refreshPdfPageRendering();await renderPdfPage(currentPage);});
   $("#bookStage").addEventListener("scroll",syncCurrentPageFromScroll,{passive:true});
-  $("#readerDownload").addEventListener("click",downloadCurrentPdf);
+  $("#readerDownload").addEventListener("click",requestPdfDownload);
   $("#readerFullscreenBtn").addEventListener("click",toggleReaderFullscreen);
   const protectedReaderAction = (event, message) => { event.preventDefault(); event.stopPropagation(); showPdfProtection(message); };
   const pdfModal = $("#pdfModal");
@@ -1639,6 +1760,7 @@ function initEvents() {
   window.addEventListener("popstate",restoreNavigationState);
   $("#continueBtn").addEventListener("click",()=>{const first=filtered(data.videos)[0];first?playVideo(first.id):toast("No lesson is available yet.",true);});
   $("#questionBankGrid").addEventListener("click",e=>{const card=e.target.closest("[data-open-bank]");if(!card||e.target.closest("[data-delete]"))return;const item=data.questionBanks.find(q=>q.id===card.dataset.openBank);if(item?.blobKey||item?.url||item?.fallbackUrl)openPdf(item.id);else toast("This set is ready for the admin to attach a solution link.");});
+  $("#questionBankGrid").addEventListener("keydown",e=>{const card=e.target.closest("[data-open-bank]");if(card&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPdf(card.dataset.openBank);}});
 }
 
 function initPwa() {
