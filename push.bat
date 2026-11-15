@@ -57,7 +57,7 @@ if errorlevel 1 goto :protected_file_error
 
 git lfs install --local >nul
 if errorlevel 1 goto :lfs_error
-git lfs fsck
+git lfs fsck --objects
 if errorlevel 1 goto :lfs_error
 
 echo [2/8] Synchronizing with GitHub main...
@@ -82,7 +82,7 @@ if errorlevel 1 goto :protected_file_error
 git grep --cached -I -n -E "AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[0-9A-Za-z]{20,}|github_pat_[0-9A-Za-z_]{20,}|vercel_[0-9A-Za-z_-]{20,}|sk-[0-9A-Za-z]{20,}" >nul 2>&1
 if not errorlevel 1 goto :secret_content_error
 
-git lfs fsck
+git lfs fsck --objects
 if errorlevel 1 goto :lfs_error
 
 if "%DRY_RUN%"=="1" goto :dry_run
@@ -98,6 +98,9 @@ if errorlevel 1 goto :commit_error
 for /f "delims=" %%C in ('git rev-list --count origin/main..HEAD 2^>nul') do set "AHEAD_COUNT=%%C"
 if not defined AHEAD_COUNT goto :history_error
 if "%AHEAD_COUNT%"=="0" goto :already_current
+
+git lfs fsck
+if errorlevel 1 goto :lfs_error
 
 echo [5/8] Uploading Git LFS objects...
 git lfs push origin main
@@ -122,7 +125,7 @@ if errorlevel 2 goto :vercel_failed
 if not errorlevel 1 goto :verify_live
 if "%VERCEL_ATTEMPT%"=="90" goto :vercel_timeout
 echo Vercel is still building... attempt %VERCEL_ATTEMPT% of 90
-timeout /t 10 /nobreak >nul
+powershell.exe -NoProfile -NonInteractive -Command "Start-Sleep -Seconds 10"
 goto :wait_for_vercel
 
 :verify_live
