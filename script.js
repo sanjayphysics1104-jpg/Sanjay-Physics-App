@@ -106,6 +106,7 @@ const IMPORTED_QUESTION_BANK_PDFS = [
   };
 });
 const DPP_TEST_SERIES_PATH = "DPP-TEST SERIES";
+const GITHUB_LFS_MEDIA_ROOT = "https://media.githubusercontent.com/media/sanjayphysics1104-jpg/Sanjay-Physics-App/main";
 const DPP_TEST_SERIES = [
   ["DPP-1- MOTION IN A STRAIGHT LINE 1.pdf",1,"Motion in a Straight Line",7,1],
   ["DPP-2-MOTION IN A PLANE-1.pdf",2,"Motion in a Plane",8,1],
@@ -923,6 +924,11 @@ async function resolveReaderPdfUrl(pdf, collection) {
 function pdfSourceCandidates(source) {
   const resolved = new URL(source, document.baseURI);
   const candidates = [resolved.href];
+  const uploadedMarker = "/assets/uploads/";
+  if (resolved.origin === location.origin && resolved.pathname.startsWith(uploadedMarker)) {
+    const uploadedPath = resolved.pathname.slice(1);
+    candidates.push(new URL(`${GITHUB_LFS_MEDIA_ROOT}/${uploadedPath}${resolved.search}`).href);
+  }
   const assetMarker = "/assets/pdfs/";
   const assetIndex = resolved.pathname.indexOf(assetMarker);
   if (resolved.origin === location.origin && assetIndex >= 0) {
