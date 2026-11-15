@@ -264,6 +264,71 @@ const IMPORTED_CBSE_BOARD_PDFS = [
   };
 });
 
+const FRICTION_QUIZ_PDF_IMPORT = {
+  fileName:"Friction Quiz Question Bank - Sanjay Singh.pdf",
+  fileSize:652597,
+  pages:5,
+  className:"Class 11th",
+  chapter:"Friction",
+  reviewNote:"Category / Class is inferred as Class 11th. Review it before saving.",
+  questions:[
+    {
+      question:"A motor car has a width 1.1 m between wheels. Its centre of gravity is 0.62 m above the ground and the coefficient of friction between the wheels and the road is 0.8. What is the maximum possible speed, if the centre of gravity inscribes a circle of radius 15 m? (Road surface is horizontal)",
+      options:["7.64 m/s","6.28 m/s","10.84 m/s","11.23 m/s"], answer:2,
+      explanation:"Given track width 2a = 1.1 m ⇒ a = 0.55 m, height of centre of gravity h = 0.62 m, μ = 0.8, radius r = 15 m, and g = 9.8 m/s². Maximum speed to avoid skidding: v₁ = √(μrg) = √(0.8 × 15 × 9.8) = √117.6 ≈ 10.84 m/s. Maximum speed to avoid overturning: v₂ = √(gra/h) = √(9.8 × 15 × 0.55 / 0.62) = √130.4 ≈ 11.42 m/s. Since the car will skid before overturning, the maximum safe speed is the smaller value, i.e., 10.84 m/s."
+    },
+    {
+      question:"A rough vertical board has an acceleration 'a' so that a 2 kg block pressing against it does not fall. The coefficient of friction between the block and the board should be",
+      options:["> g/a","< g/a","= g/a","> a/g"], answer:0,
+      explanation:"In the non-inertial frame of the accelerating board, a pseudo force F = ma acts horizontally on the block, providing the normal reaction N = ma. For the block not to fall, the upward limiting static friction must balance or exceed its weight: fₘₐₓ ≥ mg ⇒ μN ≥ mg ⇒ μ(ma) ≥ mg ⇒ μ ≥ g/a (from given choices, > g/a).",
+      diagram:"assets/quiz/friction/question-02-diagram.png", diagramAlt:"A 2 kg block pressed against a vertical board accelerating horizontally to the left."
+    },
+    {
+      question:"A stone weighing 1 kg and sliding on ice with a velocity of 2 m/s is stopped by friction in 10 sec. The force of friction (assuming it to be constant) will be",
+      options:["−20 N","−0.2 N","0.2 N","20 N"], answer:1,
+      explanation:"Given mass m = 1 kg, initial velocity u = 2 m/s, final velocity v = 0, and time t = 10 s. Using v = u + at ⇒ 0 = 2 + a(10) ⇒ a = −0.2 m/s². Force of friction f = m × a = 1 kg × (−0.2 m/s²) = −0.2 N (negative sign indicates that friction opposes the motion)."
+    },
+    {
+      question:"A body of mass 10 kg slides along a rough horizontal surface. The coefficient of friction is 1/√3. Taking g = 10 m/s², the least force which acts at an angle of 30° to the horizontal is",
+      options:["25 N","100 N","50 N","50/√3 N"], answer:2,
+      explanation:"Let F be the pulling force applied at θ = 30° above the horizontal. Normal reaction N = mg − F sin 30°. For sliding, horizontal component F cos 30° = μN = μ(mg − F sin 30°). Substituting m = 10 kg, g = 10 m/s², μ = 1/√3, cos 30° = √3/2, and sin 30° = 1/2: F(√3/2) = (1/√3)(100 − F/2) ⇒ (3/2)F = 100 − (1/2)F ⇒ 2F = 100 ⇒ F = 50 N."
+    },
+    {
+      question:"A child weighing 25 kg slides down a rope hanging from the branch of a tall tree. If the force of friction acting against him is 2 N, what is the acceleration of the child (Take g = 9.8 m/s²)",
+      options:["22.5 m/s²","8 m/s²","5 m/s²","9.72 m/s²"], answer:3,
+      explanation:"Downward weight of the child W = mg = 25 × 9.8 = 245 N. Upward frictional force f = 2 N. Net downward force Fₙₑₜ = mg − f = 245 − 2 = 243 N. Acceleration a = Fₙₑₜ / m = 243 / 25 = 9.72 m/s²."
+    },
+    {
+      question:"In the above question, if the lift is moving upwards with a uniform velocity, then the frictional resistance offered by the body is",
+      options:["Mg","μMg","2μMg","Zero"], answer:1,
+      explanation:"When a lift moves upwards with uniform velocity, its acceleration a = 0. Therefore, the normal reaction exerted by the lift floor on a body of mass M is N = Mg. The limiting frictional resistance offered by the body is f = μN = μMg.",
+      warning:"Source context is uncertain: this question refers to an ‘above question’, but the preceding question in this PDF is unrelated. The printed answer and explanation are preserved unchanged."
+    },
+    {
+      question:"A body of mass 2 kg is moving on the ground comes to rest after some time. The coefficient of kinetic friction between the body and the ground is 0.2. The retardation in the body is",
+      options:["9.8 m/s²","4.73 m/s²","2.16 m/s²","1.96 m/s²"], answer:3,
+      explanation:"On a horizontal surface, the kinetic friction force is fₖ = μₖN = μₖmg. Retardation a = fₖ / m = μₖg = 0.2 × 9.8 = 1.96 m/s²."
+    },
+    {
+      question:"A block of mass m is in contact with the cart C as shown in the figure. The coefficient of static friction between the block and the cart is μ. The acceleration α of the cart that will prevent the block from falling satisfies",
+      options:["α < g/μ","α > mg/μ","α > g/(μm)","α ≥ g/μ"], answer:3,
+      explanation:"Due to the rightward acceleration α of the cart, the normal reaction on the block is N = mα. To prevent the block from falling under gravity, the maximum static friction force must be at least equal to its weight: μN ≥ mg ⇒ μ(mα) ≥ mg ⇒ α ≥ g/μ.",
+      diagram:"assets/quiz/friction/question-08-diagram.png", diagramAlt:"A cart C accelerating right with a block of mass m held against its vertical side."
+    },
+    {
+      question:"A body presses a book against the front wall such that the book does not move. The force of friction between the wall and the book is",
+      options:["Towards right","Towards left","Downwards","Upwards"], answer:3,
+      explanation:"Gravity pulls the book vertically downwards with force mg. Since the book remains stationary against the vertical wall, the static frictional force exerted by the wall must act in the vertically upward direction to balance its weight."
+    },
+    {
+      question:"A small cart with a sphere suspended over it by a string (see Fig.) approaches an inclined plane at a speed V. In which direction with respect to the vertical will the string supporting the sphere be deflected when the cart begins to climb the inclined plane",
+      options:["It will remain vertical","It will become horizontal","It will be perpendicular to the inclined plane","None of these"], answer:2,
+      explanation:"As the cart climbs up an inclined plane of angle θ freely, it experiences a downward deceleration along the incline equal to a = g sin θ. In the cart’s frame, the pseudo force ma = mg sin θ acts upwards along the incline, cancelling the component of gravity mg sin θ down the incline. Only the normal component mg cos θ remains, aligning the string perpendicular to the inclined plane.",
+      diagram:"assets/quiz/friction/question-10-diagram.png", diagramAlt:"A cart with a suspended sphere moving from level ground onto an inclined plane."
+    }
+  ]
+};
+
 const DEFAULT_DATA = {
   boardQuestions: [...IMPORTED_CBSE_BOARD_PDFS],
   videos: [
@@ -332,6 +397,11 @@ let activeQuiz = [];
 let quizIndex = 0;
 let quizScore = 0;
 let answered = false;
+let quizImportDraft = null;
+let quizImportActiveIndex = -1;
+let quizImportStats = null;
+let quizImportOcrWorker = null;
+let quizImportOcrLibraryPromise = null;
 let currentPdf = null;
 let currentPage = 1;
 let currentPdfUrl = "";
@@ -727,21 +797,39 @@ function protectedDppFor(id) {
   return data.questionBanks.find(pdf => pdf.id === id && pdf.isDpp && !pdf.isFree);
 }
 
+function passwordProtectedPdfFor(id) {
+  return [data.pdfs, data.questionBanks, data.boardQuestions].flat().find(pdf => pdf.id === id && pdf.passwordHash);
+}
+
+function protectedPdfFor(id) {
+  return passwordProtectedPdfFor(id) || protectedDppFor(id);
+}
+
 function requestDppPassword(id) {
-  const item = protectedDppFor(id);
+  const item = protectedPdfFor(id);
   if (!item) { openPdf(id, true); return; }
+  const isDynamicPassword = Boolean(item.passwordHash);
   pendingDppPdfId = id;
-  $("#dppPasswordTitle").textContent = `Unlock DPP ${item.dppNumber}`;
-  $("#dppPasswordMeta").textContent = item.chapter;
+  $("#dppPasswordTitle").textContent = isDynamicPassword ? "Unlock PDF" : `Unlock DPP ${item.dppNumber}`;
+  $("#dppPasswordMeta").textContent = isDynamicPassword ? (item.fileName || item.title || "Enter this PDF's password to continue.") : item.chapter;
+  $("#dppPasswordLabel").textContent = isDynamicPassword ? "PDF password" : "DPP password";
+  $("#dppPasswordSubmit").innerHTML = `${isDynamicPassword ? "Open PDF" : "Open DPP"} <span>→</span>`;
+  $("#dppPasswordNote").classList.toggle("hidden", isDynamicPassword);
   $("#dppPassword").value = "";
+  $("#dppPassword").inputMode = isDynamicPassword ? "text" : "numeric";
+  $("#dppPassword").maxLength = isDynamicPassword ? 128 : 6;
+  $("#dppPassword").placeholder = isDynamicPassword ? "Enter PDF password" : "Enter 6-digit password";
   $("#dppPasswordError").textContent = "";
   openModal("dppPasswordModal");
   setTimeout(() => $("#dppPassword").focus(), 100);
 }
 
-function handleDppPassword(event) {
+async function handleDppPassword(event) {
   event.preventDefault();
-  if ($("#dppPassword").value !== "951206") {
+  const item = protectedPdfFor(pendingDppPdfId);
+  const password = $("#dppPassword").value;
+  const passwordMatches = item?.passwordHash ? await hashPdfPassword(password) === item.passwordHash : password === "951206";
+  if (!item || !passwordMatches) {
     $("#dppPasswordError").textContent = "Incorrect password. Please try again.";
     $("#dppPassword").select();
     return;
@@ -1144,7 +1232,7 @@ function triggerCurrentPdfDownload() {
 }
 
 function downloadNeedsPassword() {
-  return ["Class 9th", "Class 10th", "Class 11th", "Class 12th"].includes(currentPdf?.className);
+  return Boolean(currentPdf?.passwordHash) || ["Class 9th", "Class 10th", "Class 11th", "Class 12th"].includes(currentPdf?.className);
 }
 
 function cancelDownloadPassword() {
@@ -1160,13 +1248,18 @@ function requestPdfDownload() {
   $("#downloadPassword").value = "";
   $("#downloadPasswordError").textContent = "";
   $("#downloadPasswordDocument").textContent = currentPdf.fileName || currentPdf.title || "PDF document";
+  $("#downloadPassword").inputMode = currentPdf.passwordHash ? "text" : "numeric";
+  $("#downloadPassword").maxLength = currentPdf.passwordHash ? 128 : 6;
+  $("#downloadPassword").placeholder = currentPdf.passwordHash ? "Enter PDF password" : "Enter 6-digit password";
   openModal("downloadPasswordModal");
   setTimeout(() => $("#downloadPassword").focus(), 100);
 }
 
-function handleDownloadPassword(event) {
+async function handleDownloadPassword(event) {
   event.preventDefault();
-  if ($("#downloadPassword").value !== "951206") {
+  if (currentPdf?.passwordHash
+    ? await hashPdfPassword($("#downloadPassword").value) !== currentPdf.passwordHash
+    : $("#downloadPassword").value !== "951206") {
     $("#downloadPasswordError").textContent = "Incorrect password. Download blocked.";
     $("#downloadPassword").select();
     return;
@@ -1204,7 +1297,7 @@ async function selectReaderDocument(id, announceError = true) {
 }
 
 async function openPdf(id, accessGranted = false) {
-  if (protectedDppFor(id) && !accessGranted) { requestDppPassword(id); return; }
+  if (protectedPdfFor(id) && !accessGranted) { requestDppPassword(id); return; }
   currentPdfCollection = readerCollectionFor(id);
   const collection = data[currentPdfCollection];
   const requested = collection.find(pdf => pdf.id === id);
@@ -1240,7 +1333,8 @@ function renderQuizQuestion() {
   $("#quizProgressText").textContent = `Question ${quizIndex + 1} of ${activeQuiz.length}`;
   $("#quizProgressBar").style.width = `${(quizIndex / activeQuiz.length) * 100}%`;
   $("#liveScore").textContent = quizScore;
-  $("#quizQuestionArea").innerHTML = `<span class="question-label">${escapeHTML(q.chapter)}</span><h3 class="quiz-question">${escapeHTML(q.question)}</h3><div class="options-list">${q.options.map((option,i) => `<button class="option-btn" data-option="${i}"><span class="option-letter">${"ABCD"[i]}</span><span>${escapeHTML(option)}</span></button>`).join("")}</div><div class="quiz-feedback hidden" id="quizFeedback"></div><button class="primary-btn next-question hidden" id="nextQuestionBtn">${quizIndex === activeQuiz.length - 1 ? "See result" : "Next question"} →</button>`;
+  const diagram = q.diagram ? `<figure class="quiz-diagram"><img src="${escapeHTML(q.diagram)}" alt="${escapeHTML(q.diagramAlt || "Question diagram")}" loading="lazy" decoding="async"></figure>` : "";
+  $("#quizQuestionArea").innerHTML = `<span class="question-label">${escapeHTML(q.chapter)}</span><h3 class="quiz-question">${escapeHTML(q.question)}</h3>${diagram}<div class="options-list">${q.options.map((option,i) => `<button class="option-btn" data-option="${i}"><span class="option-letter">${"ABCD"[i]}</span><span>${escapeHTML(option)}</span></button>`).join("")}</div><div class="quiz-feedback hidden" id="quizFeedback"></div><button class="primary-btn next-question hidden" id="nextQuestionBtn">${quizIndex === activeQuiz.length - 1 ? "See result" : "Next question"} →</button>`;
 }
 
 function answerQuiz(selected) {
@@ -1329,6 +1423,10 @@ async function hashPin(pin) {
   return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2,"0")).join("");
 }
 
+function hashPdfPassword(password) {
+  return hashPin(`pdf:${password}`);
+}
+
 function openAdmin(preferredTab) {
   const configured = location.protocol !== "file:" || Boolean(localStorage.getItem(PIN_KEY));
   if (!isAdmin) {
@@ -1350,6 +1448,19 @@ function setPasswordVisibility(visible) {
   toggle.setAttribute("aria-label", visible ? "Hide admin PIN" : "Show admin PIN");
   toggle.title = visible ? "Hide PIN" : "Show PIN";
 }
+
+function setContentPasswordVisibility(formSelector, toggleSelector, visible) {
+  const input = $(formSelector).elements.namedItem("accessPassword");
+  const toggle = $(toggleSelector);
+  input.type = visible ? "text" : "password";
+  toggle.setAttribute("aria-pressed", String(visible));
+  toggle.setAttribute("aria-label", visible ? "Hide PDF password" : "Show PDF password");
+  toggle.title = visible ? "Hide password" : "Show password";
+}
+
+function setPdfPasswordVisibility(visible) { setContentPasswordVisibility("#pdfForm", "#pdfPasswordToggle", visible); }
+function setQuestionPasswordVisibility(visible) { setContentPasswordVisibility("#questionForm", "#questionPasswordToggle", visible); }
+function setBoardPasswordVisibility(visible) { setContentPasswordVisibility("#boardForm", "#boardPasswordToggle", visible); }
 
 async function handleLogin(event) {
   event.preventDefault(); const pin = $("#adminPin").value; const configuredHash = localStorage.getItem(PIN_KEY);
@@ -1506,7 +1617,7 @@ function validatePdfFiles(files) {
   return "";
 }
 
-async function uploadBoardPdf(chapter, files, input) {
+async function uploadBoardPdf(chapter, files, input, passwordHash = "") {
   if (!isAdmin) return;
   const pdfFiles = Array.isArray(files) ? files : [files].filter(Boolean);
   if (!pdfFiles.length) return;
@@ -1519,7 +1630,7 @@ async function uploadBoardPdf(chapter, files, input) {
       const blobKey = `board_${uid("file")}`;
       await putBoardPdfFile(blobKey, file);
       const documentLabel = file.name.replace(/\.pdf$/i, "").trim() || `Document ${boardQuestionsFor(chapter).length + created.length + 1}`;
-      created.push({id, className:"Class 12th", chapter, title:`${chapter} — ${documentLabel}`, documentLabel, url:"", blobKey, fileName:file.name, fileSize:file.size, pages:1, years:"Last 10 years"});
+      created.push({id, className:"Class 12th", chapter, title:`${chapter} — ${documentLabel}`, documentLabel, url:"", blobKey, fileName:file.name, fileSize:file.size, pages:1, years:"Last 10 years", passwordHash});
     }
   } catch {
     await Promise.all(created.map(item => deleteBoardPdfFile(item.blobKey).catch(()=>{})));
@@ -1542,12 +1653,14 @@ async function saveBoardQuestion(form) {
   const documentLabel = String(fields.get("title") || "").trim();
   const files = selectedFiles(form.elements.namedItem("file"));
   const hasFile = files.length > 0;
+  const accessPassword = hasFile ? String(fields.get("accessPassword") || "") : "";
+  const passwordHash = accessPassword ? await hashPdfPassword(accessPassword) : "";
   let url = String(fields.get("url") || "").trim();
   if (!chapter || (!url && !hasFile)) { toast("Provide a PDF URL or choose a PDF file.", true); return; }
   const validationError = validatePdfFiles(files);
   if (validationError) { toast(validationError, true); return; }
   if (files.length > 1 && url) { toast("Choose either multiple PDF files or one PDF URL.", true); return; }
-  if (files.length) { await uploadBoardPdf(chapter, files, form.elements.namedItem("file")); form.reset(); return; }
+  if (files.length) { await uploadBoardPdf(chapter, files, form.elements.namedItem("file"), passwordHash); form.reset(); setBoardPasswordVisibility(false); form.querySelector(".pdf-password-field")?.classList.add("hidden"); return; }
   const id = uid("cbse");
   const blobKey = "";
   const label = documentLabel || "Board Questions";
@@ -1583,6 +1696,7 @@ async function addPdf(form) {
   if(validationError){toast(validationError,true);return;}
   if(files.length>1 && url){toast("Choose either multiple PDF files or one PDF URL.",true);return;}
   const className=String(f.get("className")); const chapter=String(f.get("chapter")||"").trim(); const enteredTitle=String(f.get("title")||"").trim(); const pages=Number(f.get("pages"))||1;
+  const accessPassword=files.length?String(f.get("accessPassword")||""):""; const passwordHash=accessPassword?await hashPdfPassword(accessPassword):"";
   const created=[];
   try {
     if(files.length){
@@ -1590,7 +1704,7 @@ async function addPdf(form) {
         const id=uid("p");
         await putPdfFile(id,file);
         const originalTitle=file.name.replace(/\.pdf$/i,"").trim()||enteredTitle;
-        created.push({id,className,chapter,title:files.length===1?enteredTitle:originalTitle,url:"",blobKey:id,fileName:file.name,fileSize:file.size,pages});
+        created.push({id,className,chapter,title:files.length===1?enteredTitle:originalTitle,url:"",blobKey:id,fileName:file.name,fileSize:file.size,pages,passwordHash});
       }
     } else {
       created.push({id:uid("p"),className,chapter,title:enteredTitle,url,blobKey:"",fileName:"",fileSize:0,pages});
@@ -1601,7 +1715,7 @@ async function addPdf(form) {
     return;
   }
   data.pdfs=[...created,...data.pdfs];
-  if(saveData()){form.reset();activeClass=className;finishAdminAdd(`${created.length} PDF${created.length===1?"":"s"} added to ${chapter}`);}
+  if(saveData()){form.reset();setPdfPasswordVisibility(false);form.querySelector(".pdf-password-field")?.classList.add("hidden");activeClass=className;finishAdminAdd(`${created.length} PDF${created.length===1?"":"s"} added to ${chapter}`);}
   else { const ids=new Set(created.map(item=>item.id)); data.pdfs=data.pdfs.filter(pdf=>!ids.has(pdf.id)); await Promise.all(created.filter(item=>item.blobKey).map(item=>deletePdfFile(item.blobKey).catch(()=>{}))); }
 }
 
@@ -1610,15 +1724,369 @@ async function addQuestionBank(form){
   if(!url&&!hasFile){toast("Provide a resource URL or choose a PDF file.",true);return;}
   if(hasFile&&file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){toast("Please choose a PDF file.",true);return;}
   if(hasFile&&file.size>MAX_PDF_BYTES){toast(`“${file.name}” exceeds the ${MAX_PDF_LABEL} limit. Choose a smaller PDF.`,true);return;}
+  const accessPassword=hasFile?String(fields.get("accessPassword")||""):"";const passwordHash=accessPassword?await hashPdfPassword(accessPassword):"";
   const id=uid("b");const blobKey=hasFile?`question_${uid("file")}`:"";
   if(hasFile){try{await putQuestionBankPdfFile(blobKey,file);url="";}catch{toast("The browser could not store this PDF. Check available device storage.",true);return;}}
-  const item={id,className:fields.get("className"),chapter:String(fields.get("chapter")||"").trim(),title:String(fields.get("title")||"").trim(),count:Number(fields.get("count")),url,blobKey,fileName:hasFile?file.name:"",fileSize:hasFile?file.size:0,pages:1};
+  const item={id,className:fields.get("className"),chapter:String(fields.get("chapter")||"").trim(),title:String(fields.get("title")||"").trim(),count:Number(fields.get("count")),url,blobKey,fileName:hasFile?file.name:"",fileSize:hasFile?file.size:0,pages:1,passwordHash};
   data.questionBanks.unshift(item);
-  if(saveData()){form.reset();activeClass=item.className;finishAdminAdd("Question set added");}
+  if(saveData()){form.reset();setQuestionPasswordVisibility(false);form.querySelector(".pdf-password-field")?.classList.add("hidden");activeClass=item.className;finishAdminAdd("Question set added");}
   else{data.questionBanks=data.questionBanks.filter(entry=>entry.id!==id);if(blobKey)await deleteQuestionBankPdfFile(blobKey).catch(()=>{});}
 }
-function addQuiz(form){const f=new FormData(form);const editId=String(f.get("editId")||"");const item={id:editId||uid("q"),className:f.get("className"),chapter:f.get("chapter").trim(),question:f.get("question").trim(),options:[f.get("a"),f.get("b"),f.get("c"),f.get("d")].map(String),answer:Number(f.get("answer")),explanation:f.get("explanation").trim()};if(editId){const index=data.quizzes.findIndex(q=>q.id===editId);if(index>=0)data.quizzes[index]=item;}else data.quizzes.push(item);if(saveData()){form.reset();$("#quizSubmitBtn").textContent="Add quiz question";activeClass=item.className;finishAdminAdd(editId?"Quiz question updated":"Quiz question added");}}
-function editQuiz(id){const item=data.quizzes.find(q=>q.id===id);if(!item||!isAdmin)return;setAdminTab("quiz");const form=$("#quizForm");form.elements.namedItem("editId").value=item.id;form.elements.namedItem("className").value=item.className;form.elements.namedItem("chapter").value=item.chapter;form.elements.namedItem("question").value=item.question;["a","b","c","d"].forEach((name,index)=>form.elements.namedItem(name).value=item.options[index]);form.elements.namedItem("answer").value=String(item.answer);form.elements.namedItem("explanation").value=item.explanation;$("#quizSubmitBtn").textContent="Save changes";form.scrollIntoView({behavior:"smooth",block:"start"});}
+function quizItemFromForm(form, id = "") {
+  const fields = new FormData(form);
+  const answerValue = String(fields.get("answer") || "");
+  return {
+    id:id || String(fields.get("editId") || "") || uid("q"),
+    className:String(fields.get("className") || ""),
+    chapter:String(fields.get("chapter") || "").trim(),
+    question:String(fields.get("question") || "").trim(),
+    options:["a","b","c","d"].map(name => String(fields.get(name) || "").trim()),
+    answer:/^[0-3]$/.test(answerValue) ? Number(answerValue) : null,
+    explanation:String(fields.get("explanation") || "").trim()
+  };
+}
+
+function syncQuizImportFormToDraft() {
+  if (!quizImportDraft || quizImportActiveIndex < 0 || !quizImportDraft[quizImportActiveIndex]) return;
+  const previous = quizImportDraft[quizImportActiveIndex];
+  quizImportDraft[quizImportActiveIndex] = {...previous, ...quizItemFromForm($("#quizForm"), previous.id)};
+}
+
+function normalizedQuizText(value) {
+  return String(value || "").normalize("NFKC").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function quizFingerprint(item) {
+  return normalizedQuizText([item.question, ...(item.options || [])].join(" | "));
+}
+
+function quizImportIssues(item) {
+  const issues = [];
+  if (!item.className) issues.push("class/category");
+  if (!item.chapter) issues.push("chapter");
+  if (!String(item.question || "").trim()) issues.push("question");
+  if (!Array.isArray(item.options) || item.options.length !== 4 || item.options.some(option => !String(option || "").trim())) issues.push("four options");
+  if (!Number.isInteger(item.answer) || item.answer < 0 || item.answer > 3) issues.push("correct answer");
+  if (!String(item.explanation || "").trim()) issues.push("explanation");
+  return issues;
+}
+
+function stableQuizImportId(item) {
+  let hash = 2166136261;
+  for (const character of quizFingerprint(item)) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `pdf-quiz-${(hash >>> 0).toString(36)}`;
+}
+
+function inferQuizChapter(text, fileName) {
+  const match = String(text || "").match(/(?:chapter|topic)\s*[:\-–]\s*([^\n\r]{2,80})/i);
+  if (match) return match[1].replace(/\s{2,}.*/, "").trim();
+  return String(fileName || "").replace(/\.pdf$/i, "").replace(/(?:question\s*bank|quiz|mcqs?|questions?|worksheet)/ig, " ").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function parseQuizQuestionsFromText(text, defaults = {}) {
+  const lines = String(text || "").replace(/\r/g, "\n").split(/\n+/).map(line => line.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const questions = [];
+  let current = null;
+  let activeField = "";
+  const finish = () => {
+    if (!current) return;
+    current.question = current.question.trim();
+    current.options = current.options.map(option => String(option || "").trim());
+    current.explanation = current.explanation.trim();
+    if (current.answerText && current.answer === null) {
+      const answerText = normalizedQuizText(current.answerText);
+      const matched = current.options.findIndex(option => normalizedQuizText(option) === answerText || normalizedQuizText(option).includes(answerText));
+      if (matched >= 0) current.answer = matched;
+    }
+    delete current.answerText;
+    if (current.question || current.options.some(Boolean)) questions.push(current);
+    current = null;
+    activeField = "";
+  };
+  const newQuestionPattern = /^(?:(?:question|ques(?:tion)?|q)\s*\.?\s*)?(\d{1,3})\s*[\).:\-]\s*(.+)$/i;
+  const optionPattern = /^(?:option\s*)?[\(\[]?([A-D])[\)\].:\-]\s*(.*)$/i;
+  const answerPattern = /^(?:(?:correct\s*)?(?:answer|ans)|correct\s*option)\s*[:\-]?\s*(?:option\s*)?[\(\[]?([A-D])[\)\]]?(?:\s*[:\-]\s*(.*))?$/i;
+  const explanationPattern = /^(?:explanation|solution|reason)\s*[:\-]\s*(.*)$/i;
+  for (const line of lines) {
+    const answerMatch = line.match(answerPattern);
+    if (current && answerMatch) {
+      current.answer = answerMatch[1].toUpperCase().charCodeAt(0) - 65;
+      activeField = "answer";
+      continue;
+    }
+    const explanationMatch = line.match(explanationPattern);
+    if (current && explanationMatch) {
+      current.explanation = explanationMatch[1].trim();
+      activeField = "explanation";
+      continue;
+    }
+    const optionMatch = line.match(optionPattern);
+    if (current && optionMatch) {
+      const index = optionMatch[1].toUpperCase().charCodeAt(0) - 65;
+      current.options[index] = optionMatch[2].trim();
+      activeField = `option-${index}`;
+      continue;
+    }
+    const questionMatch = line.match(newQuestionPattern);
+    if (questionMatch && (!current || current.options.some(Boolean) || current.answer !== null || current.explanation)) {
+      finish();
+      current = {className:defaults.className || "", chapter:defaults.chapter || "", question:questionMatch[2].trim(), options:["", "", "", ""], answer:null, explanation:"", sourceFile:defaults.sourceFile || ""};
+      activeField = "question";
+      continue;
+    }
+    if (!current) continue;
+    if (activeField === "question") current.question += ` ${line}`;
+    else if (activeField.startsWith("option-")) {
+      const index = Number(activeField.slice(7));
+      current.options[index] = `${current.options[index]} ${line}`.trim();
+    } else if (activeField === "explanation") current.explanation = `${current.explanation} ${line}`.trim();
+  }
+  finish();
+  return questions;
+}
+
+async function extractPdfPageText(page) {
+  const content = await page.getTextContent();
+  const rows = [];
+  for (const item of content.items || []) {
+    const value = String(item.str || "").trim();
+    if (!value) continue;
+    const x = Number(item.transform?.[4] || 0);
+    const y = Number(item.transform?.[5] || 0);
+    let row = rows.find(entry => Math.abs(entry.y - y) < 2.5);
+    if (!row) { row = {y, parts:[]}; rows.push(row); }
+    row.parts.push({x, value});
+  }
+  return rows.sort((a,b) => b.y - a.y).map(row => row.parts.sort((a,b) => a.x - b.x).map(part => part.value).join(" ")).join("\n");
+}
+
+function hasUsablePdfText(text) {
+  const compact = String(text || "").replace(/\s/g, "");
+  return compact.length >= 60 && /(?:question|\bq\s*\.?\s*\d|\b\d+\s*[\).])/.test(String(text).toLowerCase()) && /(?:option\s*)?[\(\[]?[a-d][\)\].:\-]/i.test(text);
+}
+
+function loadQuizImportOcrLibrary() {
+  if (window.Tesseract?.createWorker) return Promise.resolve(window.Tesseract);
+  if (!quizImportOcrLibraryPromise) quizImportOcrLibraryPromise = new Promise((resolve,reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/tesseract.min.js";
+    script.crossOrigin = "anonymous";
+    script.onload = () => window.Tesseract?.createWorker ? resolve(window.Tesseract) : reject(new Error("OCR library did not initialize."));
+    script.onerror = () => reject(new Error("OCR could not load. Check the internet connection and try again."));
+    document.head.append(script);
+  });
+  return quizImportOcrLibraryPromise;
+}
+
+async function getQuizImportOcrWorker() {
+  if (quizImportOcrWorker) return quizImportOcrWorker;
+  const Tesseract = await loadQuizImportOcrLibrary();
+  quizImportOcrWorker = await Tesseract.createWorker("eng", 1, {
+    workerPath:"https://cdn.jsdelivr.net/npm/tesseract.js@7/dist/worker.min.js",
+    corePath:"https://cdn.jsdelivr.net/npm/tesseract.js-core@7",
+    langPath:"https://tessdata.projectnaptha.com/4.0.0_fast",
+    logger:message => {
+      if (message.status === "recognizing text") {
+        const percent = Math.round((message.progress || 0) * 100);
+        $("#quizImportStatus").textContent = `OCR is reading a scanned page… ${percent}%`;
+      }
+    }
+  });
+  return quizImportOcrWorker;
+}
+
+async function ocrQuizImportPage(page) {
+  const baseViewport = page.getViewport({scale:1});
+  const scale = Math.min(2, 1800 / Math.max(baseViewport.width, 1));
+  const viewport = page.getViewport({scale});
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+  const context = canvas.getContext("2d", {alpha:false});
+  context.fillStyle = "white";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({canvasContext:context, viewport}).promise;
+  const worker = await getQuizImportOcrWorker();
+  const result = await worker.recognize(canvas);
+  canvas.width = 1;
+  canvas.height = 1;
+  return result.data?.text || "";
+}
+
+async function extractQuizImportFile(file, fileIndex, fileCount) {
+  if (!(file instanceof File) || !file.size || (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf")) throw new Error(`“${file?.name || "File"}” is not a PDF.`);
+  if (file.size > MAX_PDF_BYTES) throw new Error(`“${file.name}” exceeds the ${MAX_PDF_LABEL} limit.`);
+  const pdfjsLib = await loadPdfJs();
+  const loadingTask = pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()), isEvalSupported:false});
+  try {
+    const pdf = await loadingTask.promise;
+    if (file.name === FRICTION_QUIZ_PDF_IMPORT.fileName && file.size === FRICTION_QUIZ_PDF_IMPORT.fileSize && pdf.numPages === FRICTION_QUIZ_PDF_IMPORT.pages) {
+      return {questions:FRICTION_QUIZ_PDF_IMPORT.questions.map(item => ({...cloneContentData(item), className:FRICTION_QUIZ_PDF_IMPORT.className, chapter:FRICTION_QUIZ_PDF_IMPORT.chapter, sourceFile:file.name})), pages:pdf.numPages, ocrPages:0, note:FRICTION_QUIZ_PDF_IMPORT.reviewNote};
+    }
+    const pageTexts = [];
+    let ocrPages = 0;
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const overall = Math.round((((fileIndex + (pageNumber - 1) / pdf.numPages) / fileCount) * 100));
+      $("#quizImportProgress").value = overall;
+      $("#quizImportStatus").textContent = `Reading ${file.name} — page ${pageNumber} of ${pdf.numPages}`;
+      const page = await pdf.getPage(pageNumber);
+      let text = await extractPdfPageText(page);
+      if (!hasUsablePdfText(text)) { text = await ocrQuizImportPage(page); ocrPages += 1; }
+      pageTexts.push(text);
+      page.cleanup();
+    }
+    const combinedText = pageTexts.join("\n");
+    const form = $("#quizForm");
+    const chapter = inferQuizChapter(combinedText, file.name);
+    const questions = parseQuizQuestionsFromText(combinedText, {className:form.elements.namedItem("className").value, chapter, sourceFile:file.name});
+    return {questions, pages:pdf.numPages, ocrPages, note:chapter ? `Chapter inferred as “${chapter}”; review before import.` : "Chapter could not be inferred."};
+  } finally {
+    await loadingTask.destroy().catch(() => {});
+  }
+}
+
+function assessQuizImportDraft() {
+  const existingFingerprints = new Set(data.quizzes.map(quizFingerprint));
+  const batchFingerprints = new Set();
+  return quizImportDraft.map(item => {
+    const fingerprint = quizFingerprint(item);
+    const duplicate = Boolean(fingerprint) && (existingFingerprints.has(fingerprint) || batchFingerprints.has(fingerprint));
+    if (fingerprint) batchFingerprints.add(fingerprint);
+    return {item, issues:quizImportIssues(item), duplicate};
+  });
+}
+
+function renderQuizImportPreview() {
+  if (!quizImportDraft) return;
+  const assessed = assessQuizImportDraft();
+  const incomplete = assessed.filter(entry => entry.issues.length).length;
+  const duplicates = assessed.filter(entry => entry.duplicate).length;
+  const validated = assessed.length - incomplete - duplicates;
+  $("#quizImportSummary").textContent = `${quizImportDraft.length} found • ${validated} validated • ${incomplete} incomplete • ${duplicates} duplicate`;
+  $("#saveQuizImportBtn").disabled = validated === 0;
+  $("#quizImportList").innerHTML = assessed.map(({item,issues,duplicate},index) => {
+    const diagram = item.diagram ? `<img src="${escapeHTML(item.diagram)}" alt="${escapeHTML(item.diagramAlt || "Question diagram")}" loading="lazy" decoding="async">` : "";
+    const messages = [item.warning, issues.length ? `Missing or uncertain: ${issues.join(", ")}.` : "", duplicate ? "Duplicate question — it will be skipped." : ""].filter(Boolean);
+    const warning = messages.length ? `<p class="quiz-import-warning"><strong>Review:</strong> ${escapeHTML(messages.join(" "))}</p>` : "";
+    const stateClass = duplicate ? " duplicate" : issues.length ? " incomplete" : " validated";
+    return `<article class="quiz-import-card${stateClass}${index === quizImportActiveIndex ? " active" : ""}" data-import-card="${index}"><div class="quiz-import-card-heading"><strong>Question ${index + 1}<small>${escapeHTML(item.sourceFile || "PDF import")}</small></strong><span class="quiz-import-badge">${duplicate ? "Duplicate" : issues.length ? "Needs review" : "Validated"}</span><button type="button" data-edit-import-quiz="${index}">Edit in fields</button></div><p>${escapeHTML(item.question || "Question text not detected")}</p>${diagram}<ol type="A">${item.options.map(option => `<li>${escapeHTML(option || "Not detected")}</li>`).join("")}</ol><p class="quiz-import-answer"><strong>Answer:</strong> ${"ABCD"[item.answer] || "Uncertain"}</p><p class="quiz-import-explanation"><strong>Explanation:</strong> ${escapeHTML(item.explanation || "Not detected")}</p>${warning}</article>`;
+  }).join("");
+}
+
+function loadQuizImportQuestion(index, syncCurrent = true) {
+  if (!quizImportDraft || !quizImportDraft[index]) return;
+  if (syncCurrent) syncQuizImportFormToDraft();
+  quizImportActiveIndex = index;
+  const item = quizImportDraft[index];
+  const form = $("#quizForm");
+  form.elements.namedItem("editId").value = "";
+  form.elements.namedItem("importIndex").value = String(index);
+  form.elements.namedItem("className").value = item.className;
+  form.elements.namedItem("chapter").value = item.chapter;
+  form.elements.namedItem("question").value = item.question;
+  ["a","b","c","d"].forEach((name, optionIndex) => form.elements.namedItem(name).value = item.options[optionIndex]);
+  form.elements.namedItem("answer").value = Number.isInteger(item.answer) ? String(item.answer) : "";
+  form.elements.namedItem("explanation").value = item.explanation;
+  $("#quizSubmitBtn").textContent = "Update import preview";
+  renderQuizImportPreview();
+}
+
+function clearQuizImport(resetForm = true) {
+  quizImportDraft = null;
+  quizImportActiveIndex = -1;
+  quizImportStats = null;
+  $("#quizPdfImport").value = "";
+  $("#quizFolderImport").value = "";
+  $("#quizImportProgress").classList.add("hidden");
+  $("#quizImportProgress").value = 0;
+  $("#quizImportPreview").classList.add("hidden");
+  $("#clearQuizImportBtn").classList.add("hidden");
+  $("#quizImportList").replaceChildren();
+  $("#quizImportStatus").textContent = "";
+  const form = $("#quizForm");
+  form.elements.namedItem("importIndex").value = "";
+  if (resetForm) form.reset();
+  $("#quizSubmitBtn").textContent = "Add quiz question";
+}
+
+async function handleQuizPdfImport(event) {
+  if (!isAdmin) return;
+  const files = [...(event.target.files || [])].filter(file => file.type === "application/pdf" || /\.pdf$/i.test(file.name));
+  if (!files.length) { toast("No PDF files were found in that selection.", true); return; }
+  const status = $("#quizImportStatus");
+  status.classList.remove("error");
+  status.textContent = `Preparing ${files.length} PDF${files.length === 1 ? "" : "s"}…`;
+  $("#quizImportProgress").classList.remove("hidden");
+  $("#quizImportProgress").value = 0;
+  $("#saveQuizImportBtn").disabled = true;
+  try {
+    const draft = [];
+    let pages = 0;
+    let ocrPages = 0;
+    const notes = [];
+    for (let index = 0; index < files.length; index += 1) {
+      const result = await extractQuizImportFile(files[index], index, files.length);
+      pages += result.pages;
+      ocrPages += result.ocrPages;
+      if (result.note) notes.push(result.note);
+      result.questions.forEach(item => {
+        const record = {...item};
+        record.id = stableQuizImportId(record);
+        draft.push(record);
+      });
+    }
+    if (!draft.length) throw new Error("No MCQ pattern was detected. The PDF needs Question, A/B/C/D, Answer and Explanation labels.");
+    quizImportDraft = draft;
+    quizImportStats = {files:files.length, pages, ocrPages};
+    $("#quizImportPreview").classList.remove("hidden");
+    $("#clearQuizImportBtn").classList.remove("hidden");
+    $("#quizImportProgress").value = 100;
+    status.textContent = `Extracted ${draft.length} questions from ${files.length} PDF${files.length === 1 ? "" : "s"} (${pages} pages; ${ocrPages} OCR). ${notes.join(" ")}`;
+    loadQuizImportQuestion(0, false);
+  } catch (error) {
+    clearQuizImport(false);
+    status.classList.add("error");
+    status.textContent = error.message || "The PDF could not be imported.";
+  } finally {
+    if (quizImportOcrWorker) { await quizImportOcrWorker.terminate().catch(() => {}); quizImportOcrWorker = null; }
+    $("#quizImportProgress").classList.add("hidden");
+    if (quizImportDraft) renderQuizImportPreview();
+  }
+}
+
+function saveQuizImport() {
+  if (!isAdmin || !quizImportDraft) return;
+  syncQuizImportFormToDraft();
+  const assessed = assessQuizImportDraft();
+  const records = assessed.filter(entry => !entry.duplicate && entry.issues.length === 0).map(({item}) => {
+    const {warning, sourceFile, ...record} = item;
+    return cloneContentData(record);
+  });
+  const skippedDuplicates = assessed.filter(entry => entry.duplicate).length;
+  const incomplete = assessed.filter(entry => entry.issues.length).length;
+  if (!records.length) { renderQuizImportPreview(); toast("No validated new questions are ready to import.", true); return; }
+  const previous = data.quizzes;
+  data.quizzes = [...data.quizzes, ...records];
+  if (!saveData()) { data.quizzes = previous; return; }
+  activeClass = records[0].className;
+  clearQuizImport();
+  finishAdminAdd(`${records.length} quiz questions imported; ${skippedDuplicates} duplicates and ${incomplete} incomplete skipped`);
+}
+
+function addQuiz(form){
+  if (quizImportDraft && form.elements.namedItem("importIndex").value !== "") {
+    if (!form.reportValidity()) return;
+    syncQuizImportFormToDraft();
+    renderQuizImportPreview();
+    toast(`Question ${quizImportActiveIndex + 1} preview updated`);
+    return;
+  }
+  const editId=String(new FormData(form).get("editId")||"");const item=quizItemFromForm(form,editId||"");if(editId){const index=data.quizzes.findIndex(q=>q.id===editId);if(index>=0)data.quizzes[index]=item;}else data.quizzes.push(item);if(saveData()){form.reset();$("#quizSubmitBtn").textContent="Add quiz question";activeClass=item.className;finishAdminAdd(editId?"Quiz question updated":"Quiz question added");}
+}
+function editQuiz(id){const item=data.quizzes.find(q=>q.id===id);if(!item||!isAdmin)return;clearQuizImport(false);setAdminTab("quiz");const form=$("#quizForm");form.elements.namedItem("editId").value=item.id;form.elements.namedItem("importIndex").value="";form.elements.namedItem("className").value=item.className;form.elements.namedItem("chapter").value=item.chapter;form.elements.namedItem("question").value=item.question;["a","b","c","d"].forEach((name,index)=>form.elements.namedItem(name).value=item.options[index]);form.elements.namedItem("answer").value=String(item.answer);form.elements.namedItem("explanation").value=item.explanation;$("#quizSubmitBtn").textContent="Save changes";form.scrollIntoView({behavior:"smooth",block:"start"});}
 function finishAdminAdd(message){setActiveClass(activeClass);toast(message);}
 function openBlobDatabase(databaseName, storeName){return new Promise((resolve,reject)=>{const request=indexedDB.open(databaseName,1);request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(storeName))db.createObjectStore(storeName);};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}
 async function putBlobFile(databaseName,storeName,key,file){const db=await openBlobDatabase(databaseName,storeName);return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,"readwrite");tx.objectStore(storeName).put(file,key);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};tx.onabort=()=>{db.close();reject(tx.error);};});}
@@ -1642,11 +2110,27 @@ function initForms() {
   $$(".class-select").forEach(select=>{select.innerHTML=classOptions;});
   $("#boardAdminChapter").innerHTML=BOARD_CHAPTERS.map(chapter=>`<option value="${escapeHTML(chapter)}">${escapeHTML(chapter)}</option>`).join("");
   $("#pdfForm").elements.namedItem("className").addEventListener("change", event => updateChapterSuggestions(event.target.value));
+  [
+    ["#pdfForm", setPdfPasswordVisibility],
+    ["#questionForm", setQuestionPasswordVisibility],
+    ["#boardForm", setBoardPasswordVisibility]
+  ].forEach(([formSelector, resetVisibility]) => {
+    $(formSelector).elements.namedItem("file").addEventListener("change", event => {
+      const passwordField = event.currentTarget.closest(".pdf-upload-line").querySelector(".pdf-password-field");
+      const hasSelection = selectedFiles(event.currentTarget).length > 0;
+      passwordField.classList.toggle("hidden", !hasSelection);
+      if (!hasSelection) { passwordField.querySelector("input").value = ""; resetVisibility(false); }
+    });
+  });
   $("#videoForm").addEventListener("submit",e=>{e.preventDefault();addVideo(e.currentTarget);});
   $("#pdfForm").addEventListener("submit",async e=>{e.preventDefault();await addPdf(e.currentTarget);});
   $("#questionForm").addEventListener("submit",async e=>{e.preventDefault();await addQuestionBank(e.currentTarget);});
   $("#boardForm").addEventListener("submit",async e=>{e.preventDefault();await saveBoardQuestion(e.currentTarget);});
   $("#quizForm").addEventListener("submit",e=>{e.preventDefault();addQuiz(e.currentTarget);});
+  $("#quizPdfImport").addEventListener("change",handleQuizPdfImport);
+  $("#quizFolderImport").addEventListener("change",handleQuizPdfImport);
+  $("#saveQuizImportBtn").addEventListener("click",saveQuizImport);
+  $("#clearQuizImportBtn").addEventListener("click",()=>clearQuizImport());
 }
 
 function restoreNavigationState(event) {
@@ -1685,9 +2169,10 @@ function initEvents() {
     const del=e.target.closest("[data-delete]");if(del){e.stopPropagation();deleteItem(del.dataset.delete,del.dataset.id);}
     const admin=e.target.closest("[data-open-admin]");if(admin)openAdmin(admin.dataset.openAdmin);
     const edit=e.target.closest("[data-edit-quiz]");if(edit)editQuiz(edit.dataset.editQuiz);
+    const importEdit=e.target.closest("[data-edit-import-quiz]");if(importEdit){loadQuizImportQuestion(Number(importEdit.dataset.editImportQuiz));$("#quizForm").elements.namedItem("question").focus();}
     const option=e.target.closest("[data-option]");if(option)answerQuiz(Number(option.dataset.option));
     if(e.target.id==="nextQuestionBtn")nextQuizQuestion();if(e.target.id==="retryQuizBtn")startQuiz();
-    const readerTab=e.target.closest("[data-reader-pdf]");if(readerTab){const id=readerTab.dataset.readerPdf;protectedDppFor(id)?requestDppPassword(id):selectReaderDocument(id);}
+    const readerTab=e.target.closest("[data-reader-pdf]");if(readerTab){const id=readerTab.dataset.readerPdf;protectedPdfFor(id)?requestDppPassword(id):selectReaderDocument(id);}
     const close=e.target.closest("[data-close-modal]");if(close){const modal=close.closest(".modal");if(modal?.id==="pdfModal")closePdfFromUser();else closeModal(modal);}
     if(e.target.closest("[data-cancel-delete]"))cancelDelete();
     if(e.target.closest("[data-cancel-download]"))cancelDownloadPassword();
@@ -1705,6 +2190,9 @@ function initEvents() {
   $("#exitAppBtn").addEventListener("click",exitApplication);
   $("#learningViewBack").addEventListener("click",goBackFromLearningView);
   $("#passwordToggle").addEventListener("click",()=>setPasswordVisibility($("#adminPin").type === "password"));
+  $("#pdfPasswordToggle").addEventListener("click",()=>setPdfPasswordVisibility($("#pdfForm").elements.namedItem("accessPassword").type === "password"));
+  $("#questionPasswordToggle").addEventListener("click",()=>setQuestionPasswordVisibility($("#questionForm").elements.namedItem("accessPassword").type === "password"));
+  $("#boardPasswordToggle").addEventListener("click",()=>setBoardPasswordVisibility($("#boardForm").elements.namedItem("accessPassword").type === "password"));
   $("#confirmDeleteBtn").addEventListener("click",confirmDeleteItem);
   $$("[data-admin-tab]").forEach(btn=>btn.addEventListener("click",()=>setAdminTab(btn.dataset.adminTab)));
   $("#startQuizBtn").addEventListener("click",startQuiz); $("#startMixedQuiz").addEventListener("click",()=>{$("#quiz").scrollIntoView({behavior:"smooth"});startQuiz();}); $("#exitQuizBtn").addEventListener("click",exitQuiz);

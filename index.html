@@ -261,7 +261,18 @@
           <datalist id="pdfChapterSuggestions"></datalist>
           <label>Document title<input name="title" required placeholder="Enter PDF title"></label>
           <label>PDF URL<input name="url" type="url" placeholder="https://example.com/notes.pdf"></label>
-          <label class="upload-drop">Or choose one or more PDFs (max 40 MB each)<input name="file" type="file" accept="application/pdf" multiple data-max-bytes="41943040"><span>Choose PDF files</span></label>
+          <div class="pdf-upload-line">
+            <label class="upload-drop">Or choose one or more PDFs (max 40 MB each)<input name="file" type="file" accept="application/pdf" multiple data-max-bytes="41943040"><span>Choose PDF files</span></label>
+            <label class="pdf-password-field hidden">Password (optional)
+              <span class="password-field">
+                <input name="accessPassword" type="password" maxlength="128" autocomplete="new-password" placeholder="Set PDF password">
+                <button class="password-toggle" id="pdfPasswordToggle" type="button" aria-label="Show PDF password" aria-pressed="false" title="Show password">
+                  <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.2 2.8M6.1 6.1C3.8 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-1"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+                </button>
+              </span>
+            </label>
+          </div>
           <label>Page count<input name="pages" type="number" min="1" value="128"></label>
           <button class="primary-btn" type="submit">Add PDF</button>
         </form>
@@ -269,16 +280,44 @@
           <div class="form-row"><label>Category / Class<select name="className" class="class-select" required></select></label><label>Chapter / Subject<input name="chapter" required></label></div>
           <label>Set title<input name="title" required></label><label>Number of questions<input name="count" type="number" min="1" required value="25"></label>
           <label>Solution / resource URL<input name="url" type="url" placeholder="https://…"></label>
-          <label class="upload-drop">Or choose a PDF (max 40 MB)<input name="file" type="file" accept="application/pdf" data-max-bytes="41943040"><span>Choose PDF file</span></label>
+          <div class="pdf-upload-line">
+            <label class="upload-drop">Or choose a PDF (max 40 MB)<input name="file" type="file" accept="application/pdf" data-max-bytes="41943040"><span>Choose PDF file</span></label>
+            <label class="pdf-password-field hidden">Password (optional)
+              <span class="password-field">
+                <input name="accessPassword" type="password" maxlength="128" autocomplete="new-password" placeholder="Set PDF password">
+                <button class="password-toggle" id="questionPasswordToggle" type="button" aria-label="Show PDF password" aria-pressed="false" title="Show password">
+                  <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.2 2.8M6.1 6.1C3.8 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-1"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+                </button>
+              </span>
+            </label>
+          </div>
           <button class="primary-btn" type="submit">Add question set</button>
         </form>
         <form class="admin-form hidden" id="quizForm" data-admin-form="quiz">
           <input type="hidden" name="editId">
+          <input type="hidden" name="importIndex">
+          <section class="quiz-importer" aria-labelledby="quizImportTitle">
+            <div class="quiz-importer-heading">
+              <div><strong id="quizImportTitle">Bulk import quiz questions</strong><small>Choose PDFs or a folder. Text is extracted first; scanned pages use OCR only when needed.</small></div>
+              <button class="secondary-btn hidden" id="clearQuizImportBtn" type="button">Clear import</button>
+            </div>
+            <div class="quiz-import-actions">
+              <label class="upload-drop quiz-import-upload">Choose quiz PDFs<input id="quizPdfImport" type="file" accept="application/pdf,.pdf" multiple><span>Select PDF files</span></label>
+              <label class="upload-drop quiz-import-upload">Choose a PDF folder<input id="quizFolderImport" type="file" accept="application/pdf,.pdf" multiple webkitdirectory directory><span>Select folder</span></label>
+            </div>
+            <progress class="quiz-import-progress hidden" id="quizImportProgress" max="100" value="0"></progress>
+            <p class="quiz-import-status" id="quizImportStatus" role="status" aria-live="polite"></p>
+            <div class="quiz-import-preview hidden" id="quizImportPreview">
+              <div class="quiz-import-summary"><div><strong id="quizImportSummary"></strong><small>Use Edit to correct flagged fields. Only complete, non-duplicate questions are imported.</small></div><button class="primary-btn" id="saveQuizImportBtn" type="button">Import validated questions</button></div>
+              <div class="quiz-import-list" id="quizImportList"></div>
+            </div>
+          </section>
           <div class="form-row"><label>Category / Class<select name="className" class="class-select" required></select></label><label>Chapter / Subject<input name="chapter" required></label></div>
           <label>Question<input name="question" required></label>
           <div class="form-row"><label>Option A<input name="a" required></label><label>Option B<input name="b" required></label></div>
           <div class="form-row"><label>Option C<input name="c" required></label><label>Option D<input name="d" required></label></div>
-          <label>Correct option<select name="answer" required><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label>
+          <label>Correct option<select name="answer" required><option value="">Select answer</option><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label>
           <label>Explanation<textarea name="explanation" required></textarea></label>
           <button class="primary-btn" id="quizSubmitBtn" type="submit">Add quiz question</button>
           <div class="quiz-admin-list" id="quizAdminList"></div>
@@ -288,7 +327,18 @@
           <label>Chapter<select name="chapter" id="boardAdminChapter" required></select></label>
           <label>Document label<input name="title" placeholder="e.g. Main Board Questions"></label>
           <label>PDF / resource URL<input name="url" type="url" placeholder="https://example.com/cbse-questions.pdf"></label>
-          <label class="upload-drop">Or choose one or more PDFs (max 40 MB each)<input name="file" type="file" accept="application/pdf" multiple data-max-bytes="41943040"><span>Choose PDF files</span></label>
+          <div class="pdf-upload-line">
+            <label class="upload-drop">Or choose one or more PDFs (max 40 MB each)<input name="file" type="file" accept="application/pdf" multiple data-max-bytes="41943040"><span>Choose PDF files</span></label>
+            <label class="pdf-password-field hidden">Password (optional)
+              <span class="password-field">
+                <input name="accessPassword" type="password" maxlength="128" autocomplete="new-password" placeholder="Set PDF password">
+                <button class="password-toggle" id="boardPasswordToggle" type="button" aria-label="Show PDF password" aria-pressed="false" title="Show password">
+                  <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 6.2A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.2 2.8M6.1 6.1C3.8 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-1"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+                </button>
+              </span>
+            </label>
+          </div>
           <button class="primary-btn" type="submit">Add PDF to chapter</button>
           <div class="board-admin-list" id="boardAdminList"></div>
         </form>
@@ -316,16 +366,16 @@
   <div class="modal" id="dppPasswordModal" role="dialog" aria-modal="true" aria-labelledby="dppPasswordTitle" aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel dpp-password-panel">
-      <button class="close-btn" type="button" data-close-modal aria-label="Close DPP password prompt">×</button>
+      <button class="close-btn" type="button" data-close-modal aria-label="Close PDF password prompt">×</button>
       <span class="modal-icon" aria-hidden="true">🔒</span>
       <h2 id="dppPasswordTitle">Unlock DPP</h2>
       <p id="dppPasswordMeta">Enter the DPP access password to continue.</p>
       <form id="dppPasswordForm">
-        <label>DPP password<input id="dppPassword" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="Enter 6-digit password" required></label>
+        <label><span id="dppPasswordLabel">DPP password</span><input id="dppPassword" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="Enter 6-digit password" required></label>
         <p class="form-error" id="dppPasswordError" role="alert"></p>
-        <button class="primary-btn full" type="submit">Open DPP <span>→</span></button>
+        <button class="primary-btn full" id="dppPasswordSubmit" type="submit">Open DPP <span>→</span></button>
       </form>
-      <p class="dpp-password-note">DPP 1, DPP 2 and DPP 3 are available free. DPP 4 onward requires access.</p>
+      <p class="dpp-password-note" id="dppPasswordNote">DPP 1, DPP 2 and DPP 3 are available free. DPP 4 onward requires access.</p>
     </div>
   </div>
 
