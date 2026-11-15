@@ -797,6 +797,13 @@ function pdfSourceCandidates(source) {
     const assetPath = resolved.pathname.slice("/pdf-media/".length);
     candidates.push(new URL(`/assets/pdfs/${assetPath}${resolved.search}`, document.baseURI).href);
   }
+  const decodedPath = decodeURIComponent(resolved.pathname);
+  const dppMarker = `/${DPP_TEST_SERIES_PATH}/`;
+  const dppIndex = decodedPath.indexOf(dppMarker);
+  if (resolved.origin === location.origin && dppIndex >= 0) {
+    const dppPath = decodedPath.slice(dppIndex + dppMarker.length);
+    candidates.push(new URL(`/dpp-media/${dppPath}${resolved.search}`, document.baseURI).href);
+  }
   return [...new Set(candidates)];
 }
 
