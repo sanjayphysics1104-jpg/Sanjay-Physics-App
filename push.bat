@@ -74,6 +74,9 @@ echo [3/8] Adding intended project files, PDFs and documents...
 git add --ignore-removal -- .
 if errorlevel 1 goto :stage_error
 
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$p='assets/uploads/admin-content.json'; if(-not (Test-Path -LiteralPath $p)){exit 0}; $d=Get-Content -LiteralPath $p -Raw | ConvertFrom-Json; @($d.pdfs)+@($d.questionBanks)+@($d.boardQuestions) | ForEach-Object { $u=[string]$_.url; if($u.StartsWith('/assets/uploads/')){ $f=Join-Path (Get-Location) $u.TrimStart('/').Replace('/','\'); if(-not (Test-Path -LiteralPath $f -PathType Leaf)){Write-Error ('Missing uploaded PDF: '+$u); exit 1} } }"
+if errorlevel 1 goto :missing_upload_error
+
 git diff --cached --quiet --diff-filter=D
 if errorlevel 1 goto :deletion_error
 git diff --cached --quiet -- ":(glob).env*" ":(glob)**/.env*" ":(glob)*.pem" ":(glob)**/*.pem" ":(glob)*.key" ":(glob)**/*.key"
@@ -200,6 +203,10 @@ echo Local work and credentials were preserved. Resolve the conflict, then doubl
 goto :failed
 :stage_error
 echo ERROR: Project files could not be prepared for commit.
+goto :failed
+:missing_upload_error
+echo ERROR: An Admin PDF record exists but its project PDF file is missing.
+echo Open the local app with Sanjay App.bat and upload the PDF again.
 goto :failed
 :deletion_error
 echo ERROR: A staged deletion was detected. Deployment stopped without deleting data.

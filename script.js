@@ -390,7 +390,7 @@ const DEFAULT_DATA = {
 let data = loadData();
 let activeClass = "Class 9th";
 let learningView = {view:"home", className:activeClass, target:""};
-let isAdmin = location.protocol === "file:" && sessionStorage.getItem(SESSION_KEY) === "true";
+let isAdmin = (location.protocol === "file:" || isLocalProjectHost()) && sessionStorage.getItem(SESSION_KEY) === "true";
 let pendingDelete = null;
 let deferredInstallPrompt = null;
 let activeQuiz = [];
@@ -459,8 +459,55 @@ function loadData() {
 }
 
 function saveData() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); return true; }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); persistLocalProjectContent(); return true; }
   catch (error) { toast("Browser storage is full. Use a PDF link or remove older uploads.", true); return false; }
+}
+
+function isLocalProjectHost() {
+  return location.protocol === "http:" && ["127.0.0.1", "localhost"].includes(location.hostname);
+}
+
+let localProjectPersistQueue = Promise.resolve();
+function persistLocalProjectContent() {
+  if (!isLocalProjectHost()) return Promise.resolve(false);
+  const snapshot = JSON.stringify(data);
+  localProjectPersistQueue = localProjectPersistQueue
+    .catch(() => {})
+    .then(async () => {
+      const response = await fetch("/api/local-project-content", {method:"PUT", headers:{"Content-Type":"application/json"}, body:snapshot});
+      if (!response.ok) throw new Error("Local project content could not be saved");
+      return true;
+    });
+  return localProjectPersistQueue;
+}
+
+async function persistLocalProjectPdf(file, item, collection) {
+  if (!isLocalProjectHost()) return "";
+  const response = await fetch("/api/local-project-upload", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/pdf",
+      "X-SSP-Collection":collection,
+      "X-SSP-Class":encodeURIComponent(item.className || "Other Subjects"),
+      "X-SSP-Id":item.id,
+      "X-SSP-File-Name":encodeURIComponent(file.name)
+    },
+    body:file
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.path) throw new Error(result.error || "The PDF could not be written to the project folder");
+  return result.path;
+}
+
+async function hydrateProjectContent() {
+  try {
+    const response = await fetch(`/assets/uploads/admin-content.json?fresh=${Date.now()}`, {cache:"no-store"});
+    if (!response.ok) return;
+    const saved = await response.json();
+    if (!["videos", "pdfs", "questionBanks", "quizzes", "boardQuestions"].every(key => Array.isArray(saved[key]))) return;
+    data = saved;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {}
 }
 
 function filtered(collection) { return collection.filter(item => item.className === activeClass); }
@@ -1428,7 +1475,7 @@ function hashPdfPassword(password) {
 }
 
 function openAdmin(preferredTab) {
-  const configured = location.protocol !== "file:" || Boolean(localStorage.getItem(PIN_KEY));
+  const configured = (!isLocalProjectHost() && location.protocol !== "file:") || Boolean(localStorage.getItem(PIN_KEY));
   if (!isAdmin) {
     $("#loginView").classList.remove("hidden"); $("#adminDashboard").classList.add("hidden");
     $("#loginHelp").textContent = configured ? "Enter your admin PIN to manage learning content." : "First-time setup: create a private admin PIN with at least 6 characters.";
@@ -1465,7 +1512,7 @@ function setBoardPasswordVisibility(visible) { setContentPasswordVisibility("#bo
 async function handleLogin(event) {
   event.preventDefault(); const pin = $("#adminPin").value; const configuredHash = localStorage.getItem(PIN_KEY);
   if (pin.length < 6) { $("#loginError").textContent="Use at least 6 characters."; return; }
-  if (location.protocol !== "file:") {
+  if (location.protocol !== "file:" && !isLocalProjectHost()) {
     $("#loginSubmit").disabled = true;
     $("#loginError").textContent = "";
     try {
@@ -1530,7 +1577,7 @@ async function adminRequest(path, {method="GET", body, includeToken=true} = {}) 
 }
 
 async function validateAdminSession() {
-  if (location.protocol === "file:") return;
+  if (location.protocol === "file:" || isLocalProjectHost()) return;
   const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
   if (!token) return;
   try {
@@ -1627,10 +1674,12 @@ async function uploadBoardPdf(chapter, files, input, passwordHash = "") {
   try {
     for (const file of pdfFiles) {
       const id = uid("cbse");
-      const blobKey = `board_${uid("file")}`;
-      await putBoardPdfFile(blobKey, file);
       const documentLabel = file.name.replace(/\.pdf$/i, "").trim() || `Document ${boardQuestionsFor(chapter).length + created.length + 1}`;
-      created.push({id, className:"Class 12th", chapter, title:`${chapter} — ${documentLabel}`, documentLabel, url:"", blobKey, fileName:file.name, fileSize:file.size, pages:1, years:"Last 10 years", passwordHash});
+      const item={id, className:"Class 12th", chapter, title:`${chapter} — ${documentLabel}`, documentLabel, url:"", blobKey:"", fileName:file.name, fileSize:file.size, pages:1, years:"Last 10 years", passwordHash};
+      const projectUrl=await persistLocalProjectPdf(file,item,"boardQuestions");
+      if(projectUrl)item.url=projectUrl;
+      else{item.blobKey=`board_${uid("file")}`;await putBoardPdfFile(item.blobKey,file);}
+      created.push(item);
     }
   } catch {
     await Promise.all(created.map(item => deleteBoardPdfFile(item.blobKey).catch(()=>{})));
@@ -1640,7 +1689,8 @@ async function uploadBoardPdf(chapter, files, input, passwordHash = "") {
   }
   const oldItems = data.boardQuestions;
   data.boardQuestions = [...oldItems, ...created];
-  if (!saveData()) { data.boardQuestions = oldItems; await Promise.all(created.map(item => deleteBoardPdfFile(item.blobKey).catch(()=>{}))); return; }
+  if (!saveData()) { data.boardQuestions = oldItems; await Promise.all(created.filter(item=>item.blobKey).map(item => deleteBoardPdfFile(item.blobKey).catch(()=>{}))); return; }
+  try { await persistLocalProjectContent(); } catch (error) { toast(error.message, true); return; }
   input.value = "";
   renderAll();
   toast(`${created.length} PDF${created.length === 1 ? "" : "s"} added to ${chapter}`);
@@ -1702,9 +1752,12 @@ async function addPdf(form) {
     if(files.length){
       for(const file of files){
         const id=uid("p");
-        await putPdfFile(id,file);
         const originalTitle=file.name.replace(/\.pdf$/i,"").trim()||enteredTitle;
-        created.push({id,className,chapter,title:files.length===1?enteredTitle:originalTitle,url:"",blobKey:id,fileName:file.name,fileSize:file.size,pages,passwordHash});
+        const item={id,className,chapter,title:files.length===1?enteredTitle:originalTitle,url:"",blobKey:"",fileName:file.name,fileSize:file.size,pages,passwordHash};
+        const projectUrl=await persistLocalProjectPdf(file,item,"pdfs");
+        if(projectUrl)item.url=projectUrl;
+        else{await putPdfFile(id,file);item.blobKey=id;}
+        created.push(item);
       }
     } else {
       created.push({id:uid("p"),className,chapter,title:enteredTitle,url,blobKey:"",fileName:"",fileSize:0,pages});
@@ -1715,7 +1768,7 @@ async function addPdf(form) {
     return;
   }
   data.pdfs=[...created,...data.pdfs];
-  if(saveData()){form.reset();setPdfPasswordVisibility(false);form.querySelector(".pdf-password-field")?.classList.add("hidden");activeClass=className;finishAdminAdd(`${created.length} PDF${created.length===1?"":"s"} added to ${chapter}`);}
+  if(saveData()){try{await persistLocalProjectContent();}catch(error){toast(error.message,true);return;}form.reset();setPdfPasswordVisibility(false);form.querySelector(".pdf-password-field")?.classList.add("hidden");activeClass=className;finishAdminAdd(`${created.length} PDF${created.length===1?"":"s"} added to ${chapter}`);}
   else { const ids=new Set(created.map(item=>item.id)); data.pdfs=data.pdfs.filter(pdf=>!ids.has(pdf.id)); await Promise.all(created.filter(item=>item.blobKey).map(item=>deletePdfFile(item.blobKey).catch(()=>{}))); }
 }
 
@@ -1725,11 +1778,12 @@ async function addQuestionBank(form){
   if(hasFile&&file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){toast("Please choose a PDF file.",true);return;}
   if(hasFile&&file.size>MAX_PDF_BYTES){toast(`“${file.name}” exceeds the ${MAX_PDF_LABEL} limit. Choose a smaller PDF.`,true);return;}
   const accessPassword=hasFile?String(fields.get("accessPassword")||""):"";const passwordHash=accessPassword?await hashPdfPassword(accessPassword):"";
-  const id=uid("b");const blobKey=hasFile?`question_${uid("file")}`:"";
-  if(hasFile){try{await putQuestionBankPdfFile(blobKey,file);url="";}catch{toast("The browser could not store this PDF. Check available device storage.",true);return;}}
-  const item={id,className:fields.get("className"),chapter:String(fields.get("chapter")||"").trim(),title:String(fields.get("title")||"").trim(),count:Number(fields.get("count")),url,blobKey,fileName:hasFile?file.name:"",fileSize:hasFile?file.size:0,pages:1,passwordHash};
+  const id=uid("b");let blobKey=hasFile?`question_${uid("file")}`:"";
+  const item={id,className:fields.get("className"),chapter:String(fields.get("chapter")||"").trim(),title:String(fields.get("title")||"").trim(),count:Number(fields.get("count")),url,blobKey:"",fileName:hasFile?file.name:"",fileSize:hasFile?file.size:0,pages:1,passwordHash};
+  if(hasFile){try{const projectUrl=await persistLocalProjectPdf(file,item,"questionBanks");if(projectUrl){url=projectUrl;blobKey="";}else await putQuestionBankPdfFile(blobKey,file);item.url=url;item.blobKey=blobKey;}catch(error){toast(error.message||"The browser could not store this PDF. Check available device storage.",true);return;}}
+  item.url=url;item.blobKey=blobKey;
   data.questionBanks.unshift(item);
-  if(saveData()){form.reset();setQuestionPasswordVisibility(false);form.querySelector(".pdf-password-field")?.classList.add("hidden");activeClass=item.className;finishAdminAdd("Question set added");}
+  if(saveData()){try{await persistLocalProjectContent();}catch(error){toast(error.message,true);return;}form.reset();setQuestionPasswordVisibility(false);form.querySelector(".pdf-password-field")?.classList.add("hidden");activeClass=item.className;finishAdminAdd("Question set added");}
   else{data.questionBanks=data.questionBanks.filter(entry=>entry.id!==id);if(blobKey)await deleteQuestionBankPdfFile(blobKey).catch(()=>{});}
 }
 function quizItemFromForm(form, id = "") {
@@ -2333,7 +2387,8 @@ function initPwa() {
   window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;syncInstallButton();closeModal($("#installModal"));toast("Sanjay Physics installed successfully");});
 }
 
-function init(){
+async function init(){
+  await hydrateProjectContent();
   $("#year").textContent=new Date().getFullYear();initForms();initEvents();initPwa();renderAll();
   if(sessionStorage.getItem(APP_EXITED_KEY)==="true"){clearApplicationAuthentication();showExitScreen();return;}
   validateAdminSession();syncQuestionDeletions();
@@ -2344,4 +2399,4 @@ function init(){
     setLearningView(learningStateFromLocation(),{historyMode:"replace",scroll:false});
   }
 }
-init();
+init().catch(()=>toast("The app could not finish loading saved project content.",true));
