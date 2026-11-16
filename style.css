@@ -233,6 +233,33 @@ body.ai-chat-open{overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.spa-spinner{animation-duration:1.5s}}
 
+/* Offline Sanjay Physics Assistant: hint-first learner cards and exam filters. */
+.spa-exam-modes{display:flex;gap:3px;padding:3px;border:1px solid rgba(255,255,255,.1);border-radius:11px;background:rgba(3,19,31,.38)}
+.spa-exam-modes button{min-height:30px;padding:0 9px;border:0;border-radius:8px;background:transparent;color:#9fb4bf;font-size:9px;font-weight:800;cursor:pointer}
+.spa-exam-modes button[aria-pressed="true"]{background:#ffd166;color:#342100;box-shadow:0 3px 10px rgba(0,0,0,.22)}
+.spa-answer-card{width:min(88%,940px);max-width:min(88%,940px);padding:0;overflow:hidden;border-color:rgba(255,209,102,.24);background:#09283b}
+.spa-card-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(135deg,rgba(255,209,102,.13),rgba(31,101,124,.14));border-bottom:1px solid rgba(255,255,255,.08)}
+.spa-card-head span,.spa-card-head small{font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#8eb3c2}
+.spa-card-head strong{color:#fff;font-size:13px}
+.spa-card-head small{padding:4px 7px;border-radius:12px;background:rgba(114,200,255,.09);color:#bfeaff}
+.spa-card-section{margin:0;padding:12px 15px;border-bottom:1px solid rgba(255,255,255,.07)}
+.spa-card-section h4{margin:0 0 6px;color:#ffd27a;font-size:9px;letter-spacing:.09em;text-transform:uppercase}
+.spa-card-section p{margin:0;color:#edf6f8}
+.spa-formula-block{background:rgba(1,15,24,.34)}
+.spa-formula-block [data-spa-math]{min-height:28px;display:flex;align-items:center;overflow-x:auto;color:#fff;font-size:16px}
+.spa-hint{border-left:3px solid #54d6a5;background:rgba(84,214,165,.055)}
+.spa-full-solution{background:rgba(114,200,255,.055)}
+.spa-practice{border-left:3px solid #ff9f1c;background:rgba(255,159,28,.055)}
+.spa-card-actions{display:flex;flex-wrap:wrap;gap:7px;padding:11px 14px}
+.spa-card-actions button{min-height:32px;padding:6px 9px;border:1px solid rgba(255,209,102,.24);border-radius:9px;background:rgba(255,209,102,.07);color:#ffe2a6;font-size:9px;font-weight:800;cursor:pointer}
+.spa-card-actions button:hover{border-color:#ffd166;background:rgba(255,209,102,.14)}
+.spa-card-actions button[aria-pressed="true"]{background:rgba(84,214,165,.16);border-color:#54d6a5;color:#d8fff1}
+.spa-card-actions button:disabled{opacity:.42;cursor:not-allowed}
+.spa-suggested{border-color:rgba(84,214,165,.35)!important;color:#caffeb!important}
+.spa-math-rendered .katex{font-size:1.06em}
+@media(max-width:820px){.spa-header{flex-wrap:wrap;padding-block:9px}.spa-heading{min-width:150px}.spa-exam-modes{order:3;width:100%;overflow-x:auto}.spa-exam-modes button{flex:1 0 auto}.spa-answer-card{width:98%;max-width:98%}.spa-card-head{grid-template-columns:1fr auto}.spa-card-head span{display:none}}
+@media(prefers-reduced-motion:reduce){.spa-hint-text{animation:none}}
+
 @media(max-width:620px){
   .board-library{padding-block:32px 56px}
   .board-page-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:12px}

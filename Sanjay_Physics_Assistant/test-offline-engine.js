@@ -55,6 +55,13 @@ require("./offline-engine.js");
   });
   assert.ok(contextual.answer.toLowerCase().includes("resistance"),"follow-up questions should use recent conversation context");
 
+  const independentLongPrompt = await engine.answer({
+    message:"Class 12 Magnetism and Matter: Draw a labelled graph for torque on a magnetic dipole versus angle in a uniform magnetic field and explain every step.",
+    context:{className:"Class 12th",chapter:"Magnetism and Matter"},
+    history:[{role:"user",content:"Draw a series-parallel resistor circuit with formula."}]
+  });
+  assert.equal(independentLongPrompt.chapter,"Magnetism and Matter","a complete chapter prompt must not inherit an earlier circuit request");
+
   const unsupported = await engine.answer({message:"A particle has several unknown forces. Calculate its exact acceleration.",context:{className:"Class 11th",chapter:"Laws of Motion"}});
   assert.match(unsupported.answer,/not enough verified information|insufficient information/i);
   assert.doesNotMatch(unsupported.answer,/\*\*Final Answer with SI Units:\*\*/);
@@ -64,6 +71,33 @@ require("./offline-engine.js");
   assert.ok(concept.sources.length > 0,"concept answers should cite local PDFs");
   assert.match(concept.sources[0].path,/^assets\/pdfs\/class-12\//);
   assert.ok(!concept.answer.includes("$"), "student-facing content must not use dollar delimiters");
+
+  const tutor = await engine.tutor({message:"Find resitance when voltage is 12 V and current is 2 A.",context:{className:"Class 10th",searchClass:"Class 10th",chapter:"Electricity",examMode:"All"}});
+  assert.equal(tutor.kind,"tutor-card");
+  assert.equal(tutor.topic,"Electricity");
+  assert.ok(tutor.hints.length >= 3,"hint-first cards need progressive hints");
+  assert.match(tutor.solution,/R = 6 Ω/);
+  assert.ok(tutor.formula,"every tutor card needs a formula or principle");
+
+  const naturalHeat = await engine.tutor({message:"0.2 kg water has specific heat capacity 4200 J/(kg K). Its temperature increases by 10 K. Find heat supplied.",context:{className:"JEE / NEET",searchClass:"Class 12th",chapter:"Thermodynamics",examMode:"NEET"}});
+  assert.equal(naturalHeat.topic,"Thermodynamics","an explicitly selected chapter must not be replaced by a loosely matching chapter");
+  assert.equal(naturalHeat.formula,"Q = mcΔT");
+  assert.match(naturalHeat.solution,/Thermal Physics and Thermodynamics/);
+  assert.match(naturalHeat.solution,/Q = 8400 J/);
+  assert.ok(naturalHeat.sources.every(source => /^assets\/pdfs\/class-11\//.test(source.path)),"NEET Thermodynamics must infer its Class 11 local corpus instead of unrelated Class 12 pages");
+
+  const heatWithDiagram = await engine.tutor({message:"NEET Thermodynamics: 0.2 kg water has specific heat capacity 4200 J/(kg K). Its temperature increases by 10 K. Find heat supplied, explain step by step, and draw the temperature-rise versus heat-supplied diagram.",context:{className:"JEE / NEET",searchClass:"Class 11th",chapter:"Thermodynamics",examMode:"NEET"}});
+  assert.match(heatWithDiagram.solution,/Q = 8400 J/,"a requested diagram must not suppress the numerical solution");
+  assert.match(heatWithDiagram.solution,/\[\[diagram:thermal\]\]/,"a combined numerical and diagram request must retain the thermal diagram");
+
+  for (const [level,chapters] of Object.entries(engine.knowledgeBase.classes)) {
+    for (const chapter of chapters) {
+      const routed=await engine.tutor({message:`Explain ${chapter.title}`,context:{className:level,chapter:chapter.title,examMode:"All"}});
+      assert.equal(routed.topic,chapter.title,`${level} / ${chapter.title} must remain in its explicitly selected chapter`);
+      assert.ok(routed.formula,`${level} / ${chapter.title} must provide a formula or governing principle`);
+      assert.match(routed.solution,new RegExp(chapter.title.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i"),`${level} / ${chapter.title} explanation must identify its own chapter`);
+    }
+  }
 
   const greeting = await engine.answer({message:"Hello"});
   assert.equal(greeting.source,"offline-conversation");
@@ -107,6 +141,8 @@ require("./offline-engine.js");
   assert.ok(uiSource.includes('document.querySelector(".header-actions")'),"launcher must mount in the top header");
   assert.ok(!uiSource.includes('querySelector("#aiAssistantMount")'),"launcher must not share the AI Physics Assistant mount");
   assert.ok(uiSource.includes("spa-mic"),"microphone control must exist");
+  ["Show Another Hint","Show Step-by-Step Solution","Give a Similar Practice Problem","Copy Solution","Bookmark"].forEach(label => assert.ok(uiSource.includes(label),`${label} action must exist`));
+  ["CBSE Class 12","NEET","JEE"].forEach(mode => assert.ok(uiSource.includes(`data-exam=\"${mode}\"`),`${mode} exam mode must exist`));
   assert.ok(uiSource.includes("Local PDF sources"),"local PDF citations must be rendered");
   assert.ok(uiSource.includes("history:history.slice"),"recent conversation must be provided to the offline engine");
   assert.ok(!uiSource.includes("/api/sanjay-physics-assistant"),"the assistant must not call a server API");
@@ -115,7 +151,7 @@ require("./offline-engine.js");
   const manifest = JSON.parse(fs.readFileSync(require.resolve("./pdf-index/manifest.json"),"utf8"));
   const localPdfs = fs.readdirSync(require("node:path").join(__dirname,"..","assets","pdfs"),{recursive:true,withFileTypes:true}).filter(entry => entry.isFile() && /\.pdf$/i.test(entry.name));
   assert.equal(manifest.documents.length,localPdfs.length,"every uploaded Class 9-12 PDF must be indexed");
-  assert.equal(manifest.documents.reduce((sum,document) => sum + document.pages,0),5996);
+  assert.equal(manifest.documents.reduce((sum,document) => sum + document.pages,0),6186);
   manifest.documents.forEach(document => assert.ok(fs.existsSync(require("node:path").join(__dirname,"..",document.path)),`missing indexed PDF ${document.path}`));
 
   assert.ok(databaseBytes < 20 * 1024 * 1024,"academic JSON must stay under 20 MB");
@@ -131,6 +167,8 @@ require("./offline-engine.js");
   const serviceWorker = fs.readFileSync(require.resolve("../sw.js"),"utf8");
   assert.ok(serviceWorker.includes("academic-knowledge-12.json"),"academic JSON must be cached offline");
   assert.ok(serviceWorker.includes("pdf-index/class-12.json"),"PDF corpus bundles must be cached offline");
+  assert.ok(serviceWorker.includes("offline-math.js"),"offline math renderer must be cached");
+  assert.ok(serviceWorker.includes("KaTeX_Main-Regular.woff2"),"KaTeX fonts must be cached locally");
 
   console.log("Sanjay Physics Assistant: all offline engine tests passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -77,6 +77,54 @@ window.SanjayPhysicsCorpus = (() => {
     },0);
   }
 
+  function editDistance(left,right) {
+    const a=normalise(left), b=normalise(right);
+    if (!a) return b.length;
+    if (!b) return a.length;
+    const row=Array.from({length:b.length+1},(_,index)=>index);
+    for (let i=1;i<=a.length;i++) {
+      let previous=row[0];
+      row[0]=i;
+      for (let j=1;j<=b.length;j++) {
+        const saved=row[j];
+        row[j]=Math.min(row[j]+1,row[j-1]+1,previous+(a[i-1]===b[j-1]?0:1));
+        previous=saved;
+      }
+    }
+    return row[b.length];
+  }
+
+  function fuzzyWordScore(haystack, queryTokens, weight = 1) {
+    const words=[...new Set(normalise(haystack).split(/\s+/).filter(word => word.length > 3))];
+    return queryTokens.reduce((score,token) => {
+      if (token.length < 4 || words.includes(token)) return score;
+      const threshold=token.length >= 8 ? 2 : 1;
+      return score + (words.some(word => Math.abs(word.length-token.length) <= threshold && editDistance(word,token) <= threshold) ? weight : 0);
+    },0);
+  }
+
+  function examTags(document) {
+    const text=normalise(`${document.className} ${document.category} ${document.title} ${document.fileName}`);
+    const tags=[];
+    if (/class 12|cbse|board/.test(text)) tags.push("CBSE Class 12");
+    if (/neet|mcq|objective|dpp/.test(text)) tags.push("NEET");
+    if (/jee|dpp|mcq|objective|advanced/.test(text)) tags.push("JEE");
+    return tags.length ? tags : ["All"];
+  }
+
+  function examScore(document,mode) {
+    if (!mode || mode === "All") return 0;
+    const tags=examTags(document);
+    if (mode === "CBSE Class 12") return tags.includes(mode) && document.className === "Class 12th" ? 28 : -80;
+    return tags.includes(mode) ? 22 : -16;
+  }
+
+  function solutionFor(document,page) {
+    const index=document.content.indexOf(page);
+    const nearby=document.content.slice(index+1,index+4).find(candidate => /^(answer|solution)|\banswer\b|\bsolution\b/i.test(String(candidate.t || "").trim()));
+    return nearby ? bestExcerpt(nearby.t,[]) : "";
+  }
+
   function bestExcerpt(text, queryTokens) {
     const clean = String(text || "").replace(/\s+/g," ").trim();
     if (!clean) return "This page is image-based; open the cited page to view the original question, figure, or solution.";
@@ -101,7 +149,7 @@ window.SanjayPhysicsCorpus = (() => {
     };
   }
 
-  async function search({query,className,chapter="",limit=4} = {}) {
+  async function search({query,className,chapter="",mode="All",limit=4,excludeIds=[]} = {}) {
     const selectedClass = /^Class (9|10|11|12)th$/.test(className || "") ? className : "Class 12th";
     const bundle = await loadClass(selectedClass);
     const queryTokens = tokens(query);
@@ -109,12 +157,15 @@ window.SanjayPhysicsCorpus = (() => {
     const results = [];
     for (const document of bundle.documents) {
       const documentText = normalise(`${document.chapter} ${document.title} ${document.fileName} ${document.category}`);
-      let documentScore = phraseScore(documentText,chapter,18) + phraseScore(documentText,query,25) + wordScore(documentText,queryTokens,6);
+      const excluded=excludeIds.includes(document.id);
+      let documentScore = phraseScore(documentText,chapter,22) + phraseScore(documentText,query,28) + wordScore(documentText,queryTokens,7) + fuzzyWordScore(documentText,queryTokens,3) + examScore(document,mode);
+      if (excluded) documentScore -= 100;
       if (intent.board && /board question/i.test(document.category)) documentScore += 16;
       if (intent.objective && /mcq/i.test(document.category)) documentScore += 16;
       for (const page of document.content) {
         const pageText = normalise(page.t);
-        let score = documentScore + wordScore(pageText,queryTokens,2);
+        const equationText=normalise((page.e || []).join(" "));
+        let score = documentScore + wordScore(pageText,queryTokens,3) + fuzzyWordScore(pageText,queryTokens,1.5) + wordScore(equationText,queryTokens,5);
         if (intent.figure && page.f?.length) score += 7;
         if (intent.equation && page.e?.length) score += 7;
         if (!pageText && documentScore <= 0) continue;
@@ -146,11 +197,22 @@ window.SanjayPhysicsCorpus = (() => {
         excerpt:bestExcerpt(match.page.t,queryTokens),
         figures:match.page.f || [],
         equations:match.page.e || [],
+        examTags:examTags(match.document),
+        solutionExcerpt:solutionFor(match.document,match.page),
         score:match.score,
         matchType:match.exactQuestion ? "exact" : "related"
       });
     }
     return selected;
+  }
+
+  async function similarPractice({className,chapter,mode="All",excludeIds=[]} = {}) {
+    const results=await search({query:`${chapter} question numerical practice`,className,chapter,mode,limit:8,excludeIds});
+    const readable=results.filter(item => item.excerpt && !/page is image-based/i.test(item.excerpt));
+    const match=readable.find(item => /\?|calculate|find|derive|show that|prove|mcq|which of|question/i.test(item.excerpt))
+      || readable.find(item => /question|bank|mcq|dpp/i.test(`${item.category} ${item.fileName}`))
+      || readable[0] || null;
+    return match || null;
   }
 
   async function ready() {
@@ -168,5 +230,5 @@ window.SanjayPhysicsCorpus = (() => {
     else setTimeout(run,200);
   }
 
-  return {ready,search,preload,loadManifest};
+  return {ready,search,similarPractice,preload,loadManifest};
 })();

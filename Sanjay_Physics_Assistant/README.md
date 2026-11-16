@@ -9,13 +9,16 @@ This folder contains the application's separate, fully offline physics assistant
 - `academic-db.js` — lazy offline loader and subject/chapter search API for the JSON pack.
 - `pdf-index/manifest.json` — lightweight metadata for every uploaded Class 9–12 PDF.
 - `pdf-index/class-*.json` — lazy class-specific page text, equation and figure-reference indexes.
-- `corpus-index.js` — cached client-side retrieval over the static PDF indexes.
-- `offline-engine.js` — local corpus retrieval, curriculum answers and deterministic numerical solvers using SI units and Indian textbook notation.
-- `offline-ui.js` — independent chat interface in the existing header position, with local PDF/page citations, microphone input, device-local history, quick actions and safe inline SVG diagrams.
+- `corpus-index.js` — cached client-side hybrid retrieval with weighted chapter/question/formula fields, typo-tolerant token matching, exam-mode prioritisation and same-topic practice lookup.
+- `offline-engine.js` — local corpus retrieval, hint-first tutor cards, curriculum answers and deterministic numerical solvers using SI units and Indian textbook notation.
+- `offline-ui.js` — independent chat interface in the existing header position, with exam filters, progressive hints, device-local bookmarks/analytics, local PDF/page citations, microphone input, quick actions and safe inline SVG diagrams.
+- `offline-math.js` and `vendor/katex/` — local KaTeX rendering runtime and compressed fonts; no formula rendering request leaves the device.
 - `build-pdf-index.mjs` and `extract-pdf-text.py` — development-only index generator. Python is never used by the deployed app.
 - `test-offline-engine.js` — zero-dependency module contract tests.
 
-The runtime, manifest and four class indexes are precached by the existing service worker. After the application shell is installed, the module works with the network disconnected. No model file, server, external font, Markdown library or image is needed by this assistant. Original PDF files remain unchanged and are cached by the service worker only when a student opens them.
+The runtime, manifest, four class indexes and KaTeX assets are precached by the existing service worker. After the application shell is installed, the module works with the network disconnected. No model file, server, external font, Markdown library or image is needed by this assistant. Original PDF files remain unchanged and are cached by the service worker only when a student opens them.
+
+The first answer is deliberately Socratic: a concept/principle, one formula and Step-1 hint are shown first. Further hints, the verified full solution and a related local question-bank problem are revealed only through the card actions. Exam mode, bookmarks, topic counts and suggested practice remain in browser storage and are never uploaded.
 
 The Class 12 JSON pack is also precached but loaded into memory only when `SanjayAcademicDatabase.load()` or `.search()` is called. This keeps initial rendering fast. Physics remains the assistant's priority and deepest domain; the same pack provides contextual Class 12 Chemistry, Biology and Mathematics support.
 

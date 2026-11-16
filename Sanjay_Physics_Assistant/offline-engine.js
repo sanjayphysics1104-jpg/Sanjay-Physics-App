@@ -3,7 +3,9 @@
 window.SanjayPhysicsOfflineEngine = (() => {
   const KB = window.SANJAY_PHYSICS_KB;
   const Corpus = window.SanjayPhysicsCorpus;
-  const normalise = value => String(value || "").toLowerCase().replace(/[–—−]/g, "-").replace(/²/g, "2").replace(/\s+/g, " ").trim();
+  const normalise = value => String(value || "").toLowerCase().replace(/[–—−]/g, "-").replace(/²/g, "2")
+    .replace(/\bresitance\b/g,"resistance").replace(/\baccelaration\b/g,"acceleration").replace(/\bvelocoty\b/g,"velocity").replace(/\bgravatation\b/g,"gravitation")
+    .replace(/\s+/g, " ").trim();
   const semanticQuery = value => {
     const source=String(value || "");
     const additions=[
@@ -13,7 +15,10 @@ window.SanjayPhysicsOfflineEngine = (() => {
       [/energy (?:because of|due to) (?:position|height)/i," potential energy height"],
       [/bending of light|light bend|bend.*light/i," refraction refractive index"],
       [/number of oscillations (?:made )?per second/i," frequency hertz oscillation"],
-      [/minimum energy.*electron.*metal/i," work function photoelectric effect"]
+      [/minimum energy.*electron.*metal/i," work function photoelectric effect"],
+      [/v\s*=\s*u\s*\+\s*a\s*t|first equation of motion/i," motion velocity acceleration time kinematics"],
+      [/s\s*=\s*u\s*t.*a\s*t|second equation of motion/i," motion displacement velocity acceleration time kinematics"],
+      [/v\s*(?:\^\s*2|2)\s*=\s*u\s*(?:\^\s*2|2).*2\s*a\s*s|third equation of motion/i," motion velocity displacement acceleration kinematics"]
     ].filter(([pattern]) => pattern.test(source)).map(([,terms]) => terms).join(" ");
     return `${source}${additions}`;
   };
@@ -30,7 +35,7 @@ window.SanjayPhysicsOfflineEngine = (() => {
     const queryWords = new Set(q.split(/[^a-z0-9λμνθ]+/).filter(Boolean));
     const stopWords = new Set(["the","and","for","with","from","this","that","into"]);
     const title = normalise(entry.title);
-    let score = normalise(selectedTitle) === title ? 18 : 0;
+    let score = normalise(selectedTitle) === title ? 1 : 0;
     if (q.includes(title)) score += 16;
     [...entry.keywords, ...title.split(/\W+/)].forEach(word => {
       const token = normalise(word);
@@ -43,6 +48,13 @@ window.SanjayPhysicsOfflineEngine = (() => {
   function findChapter(query, className, selectedTitle) {
     const preferred = getChapters(className);
     const all = Object.values(KB.classes).flat();
+    const selected=normalise(selectedTitle);
+    if (selected) {
+      const exactPreferred=preferred.find(entry => normalise(entry.title) === selected);
+      if (exactPreferred) return exactPreferred;
+      const exactAny=all.find(entry => normalise(entry.title) === selected);
+      if (exactAny) return exactAny;
+    }
     const pool = [...preferred, ...all.filter(item => !preferred.includes(item))];
     return pool.map(entry => ({entry, score:scoreChapter(entry, query, selectedTitle) + (preferred.includes(entry) ? 12 : 0)})).sort((a,b) => b.score-a.score)[0]?.entry || preferred[0];
   }
@@ -53,8 +65,12 @@ window.SanjayPhysicsOfflineEngine = (() => {
     Mathematics:/\b(mathematics|maths|algebra|calculus|differentiate|derivative|integration|integral|quadratic equation|trigonometric identity|probability|matrix|matrices|determinant|differential equation|linear programming|vector algebra)\b|गणित/i
   };
   const PHYSICS_TERMS = /\b(physics|force|motion|speed|velocity|acceleration|distance|displacement|mass|weight|gravity|gravitation|work|energy|power|momentum|friction|pressure|density|heat|temperature|thermodynamic|wave|sound|frequency|wavelength|light|mirror|lens|optics|electric|electricity|current|voltage|resistance|charge|capacitor|magnet|magnetic|induction|atom|nucleus|nuclear|semiconductor|radiation|quantum|projectile|torque|rotation|oscillation|shm|fluid|viscosity|buoyancy|newton|joule|watt|ohm|ampere|vector)\b/i;
+  const PHYSICS_FORMULAS = /v\s*=\s*u\s*\+\s*a\s*t|s\s*=\s*u\s*t.*a\s*t|v\s*(?:\^\s*2|2)\s*=\s*u\s*(?:\^\s*2|2).*2\s*a\s*s|f\s*=\s*m\s*a/i;
   const FRIENDLY_PATTERNS = /^(hi|hello|hey|namaste|good morning|good afternoon|good evening|how are you|what is your name|who are you|thank you|thanks|bye|goodbye|can you help me|tell me a joke|motivate me|i am bored|i am tired|how should i study|नमस्ते|कैसे हो|धन्यवाद|अलविदा)[.!?\s]*$/i;
   function detectSubject(query) {
+    // Calculus words such as "derivative" are often part of a physics derivation.
+    // Keep those questions in Physics whenever a physical quantity is present.
+    if (PHYSICS_TERMS.test(query) || PHYSICS_FORMULAS.test(normalise(query))) return "Physics";
     for (const [subject,pattern] of Object.entries(SUBJECT_PATTERNS)) if (pattern.test(query)) return subject;
     if (isPhysicsQuery(query)) return "Physics";
     return "";
@@ -148,6 +164,7 @@ window.SanjayPhysicsOfflineEngine = (() => {
     if (/circuit|series|parallel/.test(q)) return "**Circuit schematic**\n\nMark current directions and potential drops before applying Kirchhoff rules.\n\n[[diagram:circuit]]";
     if (/gauss|electric field|electric flux|charge/.test(q)) return "**Electric-field schematic**\n\nChoose a Gaussian surface that matches the charge symmetry. Mark the outward area vector dA and the field direction before evaluating ΦE = ∮E · dA.\n\n[[diagram:field]]";
     if (/ray|lens|mirror|optic/.test(q)) return "**Ray-optics schematic**\n\nUse one ray parallel to the principal axis and one through the optical centre; their intersection locates the image.\n\n[[diagram:ray]]";
+    if (/heat|temperature|thermodynamic|calor/.test(q)) return "**Heating graph**\n\nFor a fixed mass and specific heat capacity, Q = mcΔT, so temperature rise is directly proportional to heat supplied.\n\n[[diagram:thermal]]";
     if (/graph/.test(q)) return "**Graph setup**\n\nLabel both axes with quantity and SI unit, select a uniform scale, and state what the slope and area represent.\n\n[[diagram:graph]]";
     if (/pendulum/.test(q)) return "**Simple-pendulum schematic**\n\nLabel the point of suspension, length l, bob, mean position and angular displacement θ.\n\n[[diagram:pendulum]]";
     if (/projectile|trajectory/.test(q)) return "**Projectile-motion schematic**\n\nChoose horizontal and vertical axes, mark the launch velocity u and resolve it into u cosθ and u sinθ.\n\n[[diagram:projectile]]";
@@ -158,7 +175,7 @@ window.SanjayPhysicsOfflineEngine = (() => {
   function physicsBranch(value) {
     const q=normalise(typeof value === "string" ? value : value?.title || "");
     if (/mirror|lens|optic|light|reflection|refraction|wave optics|human eye/.test(q)) return "Optics";
-    if (/charge|electrostatic|potential|capacit|gauss|electric flux/.test(q)) return "Electrostatics";
+    if (/charge|electrostatic|potential|capacit(?:or|ance|ive)\b|gauss|electric flux/.test(q)) return "Electrostatics";
     if (/current|electricity|resistance|ohm|electric power|circuit/.test(q)) return "Current Electricity";
     if (/magnet|induction|alternating|electromagnetic/.test(q)) return "Magnetism and Electromagnetism";
     if (/heat|temperature|thermodynamic|kinetic theory|calor/.test(q)) return "Thermal Physics and Thermodynamics";
@@ -219,14 +236,15 @@ window.SanjayPhysicsOfflineEngine = (() => {
   }
 
   function contextualQuery(query, history = []) {
+    if (String(query).trim().split(/\s+/).length > 12) return query;
     if (!/\b(it|that|this|there|same|again|relation|formula|law)\b/i.test(query)) return query;
     const previous=history.slice(-6).map(item => String(item?.content || "").trim()).filter(Boolean).slice(-3).join(" ");
     return previous ? `${previous} ${query}` : query;
   }
 
-  function solveNumerical(question) {
+  function solveNumerical(question, topicEntry = null) {
     const q = normalise(question);
-    const branch=physicsBranch(question);
+    const branch=physicsBranch(topicEntry || question);
     const finish=(...args) => labelledNumerical(branch,...args);
     const mass = valueFor(question, ["mass"], "kg") || (() => { const match=question.match(/(-?\d+(?:\.\d+)?)\s*kg\b/i); return match ? {value:Number(match[1]),unit:"kg",source:"kg"} : null; })();
     const acceleration = valueFor(question, ["acceleration", "a"], "m/s²");
@@ -246,7 +264,10 @@ window.SanjayPhysicsOfflineEngine = (() => {
     const waveSpeed = valueFor(question, ["wave speed", "speed of wave"], "m/s");
     const angle = valueFor(question, ["angle", "theta", "θ"], "°");
     const specificHeat = valueFor(question, ["specific heat capacity", "specific heat", "c"], "J/(kg K)");
-    const deltaT = valueFor(question, ["temperature change", "change in temperature", "delta t", "Δt"], "K");
+    const deltaT = valueFor(question, ["temperature change", "change in temperature", "delta t", "Δt"], "K") || (() => {
+      const match=question.match(/temperature\s+(?:increases?|rises?|decreases?|falls?)\s+by\s+(-?\d+(?:\.\d+)?)\s*(?:K|°?C)\b/i);
+      return match ? {value:Number(match[1]),unit:"K",source:"temperature change"} : null;
+    })();
 
     if ((q.includes("force") || q.includes("newton")) && mass && acceleration && !q.includes("friction")) {
       const result = mass.value * acceleration.value;
@@ -313,6 +334,75 @@ window.SanjayPhysicsOfflineEngine = (() => {
     return `${section("Branch",branch)}\n\n${section("Principle",`Use the standard ${entry.title} relations with their stated assumptions and sign convention.`)}\n\n**Required Formulae:**\n${entry.formulas.map((formula,index) => `${index+1}. ${formula}`).join("\n")}\n\n**Final Check:** Convert every value to SI units before substitution and verify dimensions.`;
   }
 
+  function derivationResponse(query,entry) {
+    const q=normalise(query);
+    if (/v\s*=\s*u\s*\+\s*a\s*t|first equation|velocity.*time/.test(q)) {
+      return `**Derivation using a derivative — first equation of motion**
+
+For constant acceleration, acceleration is the time derivative of velocity:
+
+$$a = dv/dt$$
+
+Rearrange it:
+
+$$dv = a\,dt$$
+
+Integrate from initial velocity u at time 0 to final velocity v at time t:
+
+$$\int_u^v dv = \int_0^t a\,dt$$
+
+Because a is constant:
+
+$$v-u = at$$
+
+Therefore:
+
+$$v = u + at$$
+
+This derivation is valid only for constant acceleration.`;
+    }
+    if (/s\s*=\s*u\s*t|second equation|displacement.*time/.test(q)) {
+      return `**Derivation using a derivative — displacement equation**
+
+Velocity is the time derivative of displacement: $$v = ds/dt$$
+
+Using $$v = u + at$$ gives $$ds = (u+at)dt$$. Integrating from 0 to s and 0 to t:
+
+$$s = \int_0^t (u+at)dt = ut + (1/2)at^2$$
+
+Therefore: $$s = ut + (1/2)at^2$$ for constant acceleration.`;
+    }
+    if (/v\s*\^?2|third equation|velocity.*displacement/.test(q)) {
+      return `**Derivation using a derivative — velocity–displacement equation**
+
+Use the chain rule: $$a = dv/dt = (dv/ds)(ds/dt) = v(dv/ds)$$
+
+So $$v\,dv = a\,ds$$. Integrating from u to v and 0 to s:
+
+$$\int_u^v v\,dv = \int_0^s a\,ds$$
+
+$$ (v^2-u^2)/2 = as $$
+
+Therefore: $$v^2 = u^2 + 2as$$ for constant acceleration.`;
+    }
+    if (/f\s*=\s*m\s*a|newton.*second|force.*momentum/.test(q)) {
+      return `**Derivation of Newton's second-law form**
+
+Force is the time derivative of momentum: $$F = dp/dt$$
+
+For constant mass, $$p = mv$$, hence $$F = d(mv)/dt = m(dv/dt)$$.
+
+Since $$a = dv/dt$$, we obtain $$F = ma$$.`;
+    }
+    const formula=(entry?.formulas || [])[0];
+    if (!formula) return "A verified local formula was not found for this derivation. Choose the exact equation so I do not invent missing steps.";
+    return `**Derivation setup — ${entry.title}**
+
+Target relation: $$${formula}$$
+
+Start from the defining physical law, state its assumptions, and transform one algebraic step at a time. Ask with the exact target equation for a complete derivative/integral derivation.`;
+  }
+
   function conceptResponse(entry, query = "") {
     const branch=physicsBranch(entry);
     const expanded=semanticQuery(query);
@@ -353,9 +443,17 @@ window.SanjayPhysicsOfflineEngine = (() => {
   }
 
   async function corpusSources(query,context,entry) {
-    if (!Corpus?.search || !/^Class (9|10|11|12)th$/.test(context.className || "")) return [];
+    let searchClass=context.searchClass || (/^Class (9|10|11|12)th$/.test(context.className || "") ? context.className : "Class 12th");
     try {
-      return await Corpus.search({query,className:context.className,chapter:context.chapter || entry?.title || "",limit:4});
+      const inferredChapter=entry?.title || "";
+      const explicitPhysicsTarget=PHYSICS_FORMULAS.test(normalise(query)) || /\b(derive|derivation|differentiat|derivative)\b/i.test(query);
+      const chapter=explicitPhysicsTarget ? inferredChapter : (context.chapter || inferredChapter);
+      const inferredClass=Object.entries(KB.classes).find(([,chapters]) => chapters.includes(entry))?.[0];
+      if (explicitPhysicsTarget || context.className === "JEE / NEET") {
+        if (/^Class (9|10|11|12)th$/.test(inferredClass || "")) searchClass=inferredClass;
+      }
+      if (!Corpus?.search || !/^Class (9|10|11|12)th$/.test(searchClass)) return [];
+      return await Corpus.search({query,className:searchClass,chapter,mode:context.examMode || "All",limit:4});
     } catch {
       return [];
     }
@@ -383,6 +481,11 @@ window.SanjayPhysicsOfflineEngine = (() => {
     const entry = findChapter(effectiveQuery, context.className, context.chapter);
     const sources = await corpusSources(effectiveQuery,context,entry);
     const visual=requestedVisual(effectiveQuery);
+    const asksNumerical = /(calculate|find|solve|numerical|how much|determine|given)/i.test(query) || /\d/.test(query);
+    if (visual && asksNumerical) {
+      const solved=solveNumerical(query,entry);
+      if (solved) return {answer:`${solved}\n\n${visual}`,source:"offline-solver",chapter:entry?.title,sources};
+    }
     if (visual) {
       const originalNote=/original|from the pdf|pdf figure/i.test(query)
         ? (sources.length ? `**Original PDF page:** Open the verified source link below to view the original figure exactly as printed; it has not been redrawn or altered.` : `**Original figure limitation:** No verified source page was found in the searchable local index. The schematic below is a local textbook-style aid, not a claimed PDF figure.`)
@@ -392,11 +495,13 @@ window.SanjayPhysicsOfflineEngine = (() => {
     if (/(vector diagram|show.*force.*resolv|resolve.*force.*component)/i.test(query) && !/\d/.test(query)) {
       return {answer:`${section("Branch","Mechanics — Vector Resolution")}\n\n${section("Principle","Resolve a vector along mutually perpendicular axes without changing the original vector.")}\n\n**Resolution of a Force**\n\nFor a force F acting at an angle θ above the horizontal:\n\n• Horizontal component: Fₓ = F cosθ\n• Vertical component: Fᵧ = F sinθ\n\n[[diagram:force]]\n\n${corpusEvidence(sources)}`, source:"offline-corpus", chapter:"Motion in a Plane",sources};
     }
-    const asksNumerical = /(calculate|find|solve|numerical|how much|determine|given)/i.test(query) || /\d/.test(query);
+    if (/\b(derive|derivation|differentiat|derivative)\b/i.test(query)) {
+      return {answer:`${derivationResponse(effectiveQuery,entry)}\n\n${corpusEvidence(sources)}`,source:sources.length ? "offline-corpus" : "offline-kb",chapter:entry?.title,sources};
+    }
     if (asksNumerical) {
-      const solved = solveNumerical(query);
+      const solved = solveNumerical(query,entry);
       if (solved) return {answer:solved, source:"offline-solver", chapter:entry?.title,sources};
-      return {answer:`**Insufficient information:** There is not enough verified information to calculate a unique numerical answer without guessing.\n\nPlease provide the known values, their units, the required quantity, and any stated conditions. I will not invent a formula, value, PDF passage or page reference.\n\n${corpusEvidence(sources)}`, source:sources.length ? "offline-corpus" : "offline-kb", chapter:entry?.title,sources};
+      return {answer:`**Insufficient information:** There is not enough verified information to calculate a unique numerical answer without guessing.\n\n**Relevant chapter:** ${entry?.title || physicsBranch(query)}\n\n**Likely governing relation:** ${primaryFormula(entry,sources,query)}\n\nPlease provide the known values, their units, the required quantity, and any stated conditions. I will not invent a formula, value, PDF passage or page reference.\n\n${corpusEvidence(sources)}`, source:sources.length ? "offline-corpus" : "offline-kb", chapter:entry?.title,sources};
     }
     if (/formula|relation|equation/i.test(q) || /give me the key formulas/i.test(q)) return {answer:`${formulasResponse(entry)}\n\n${corpusEvidence(sources)}`, source:"offline-corpus", chapter:entry?.title,sources};
     if (/mcq|hint|without revealing/i.test(q)) return {answer:`${hintResponse(entry)}\n\n${corpusEvidence(sources)}`, source:"offline-corpus", chapter:entry?.title,sources};
@@ -407,5 +512,112 @@ window.SanjayPhysicsOfflineEngine = (() => {
     return {answer:`${conceptResponse(entry,effectiveQuery)}\n\n${corpusEvidence(sources)}`, source:sources.length ? "offline-corpus" : "offline-kb", chapter:entry?.title,sources};
   }
 
-  return {answer, getChapters, solveNumerical, isPhysicsQuery, detectSubject, knowledgeBase:KB};
+  function primaryFormula(entry,sources=[],query="") {
+    const extracted=sources.flatMap(source => source.equations || []).find(Boolean);
+    const formulas=entry?.formulas || [];
+    const q=normalise(query);
+    const intentFormula=[
+      [/specific heat|calor|heat supplied|heat required|temperature change|temperature.*(?:increase|rise|decrease|fall)/,"Q = mcΔT"],
+      [/latent heat|change of state|melting|boiling/,"Q = mL"],
+      [/first law|internal energy|heat.*work|work.*heat/,"ΔQ = ΔU + ΔW"],
+      [/ideal gas|gas equation|pressure.*volume.*temperature/,"PV = nRT"],
+      [/heat engine|thermal efficiency|carnot/,"η = W/Q_H"],
+      [/resistance|ohm|voltage.*current/,"V = IR"],
+      [/electric power|power.*(?:voltage|current|resistance)/,"P = VI = I²R = V²/R"],
+      [/capacitance|capacitor.*charge|charge.*potential/,"C = Q/V"],
+      [/coulomb|force.*charges?/,"F = kq₁q₂/r²"],
+      [/electric field.*charge|field due to.*charge/,"E = kQ/r²"],
+      [/gauss|electric flux/,"Φ_E = q_enclosed/ε₀"],
+      [/magnetic force.*charge|charge.*magnetic field/,"F = qvB sinθ"],
+      [/force.*current.*magnetic|current carrying.*field/,"F = BIl sinθ"],
+      [/faraday|induced emf|changing magnetic flux/,"ε = −dΦ_B/dt"],
+      [/rms.*voltage|voltage.*rms/,"V_rms = V₀/√2"],
+      [/rms.*current|current.*rms/,"I_rms = I₀/√2"],
+      [/resonance|lcr/,"f₀ = 1/(2π√LC)"],
+      [/mirror formula|spherical mirror/,"1/f = 1/v + 1/u"],
+      [/lens formula|thin lens/,"1/f = 1/v − 1/u"],
+      [/young.*double slit|fringe width|ydse/,"β = λD/d"],
+      [/photoelectric|stopping potential|work function/,"K_max = hν − φ = eV₀"],
+      [/de broglie|matter wave/,"λ = h/p"],
+      [/radioactive|half life|decay constant/,"N = N₀e^(−λt); T½ = ln2/λ"],
+      [/binding energy|mass defect/,"E = Δmc²"],
+      [/projectile.*range|range.*projectile/,"R = u²sin2θ/g"],
+      [/projectile.*height|maximum height/,"H = u²sin²θ/(2g)"],
+      [/time of flight/,"T = 2u sinθ/g"],
+      [/force|newton.*second|mass.*acceleration/,"F = ma"],
+      [/momentum|impulse/,"p = mv; J = Δp"],
+      [/kinetic energy/,"K = ½mv²"],
+      [/potential energy|height.*energy/,"U = mgh"],
+      [/work done|force.*displacement/,"W = Fs cosθ"],
+      [/pressure.*depth|hydrostatic/,"P = P₀ + ρgh"],
+      [/bernoulli/,"P + ½ρv² + ρgh = constant"],
+      [/simple harmonic|shm.*acceleration/,"a = −ω²x"],
+      [/spring.*time period|time period.*spring/,"T = 2π√(m/k)"],
+      [/pendulum.*time period|time period.*pendulum/,"T = 2π√(l/g)"],
+      [/wave speed|frequency.*wavelength|wavelength.*frequency/,"v = fλ"],
+      [/final velocity|first equation/,"v = u + at"],
+      [/displacement.*time|second equation/,"s = ut + ½at²"],
+      [/velocity.*displacement|third equation/,"v² = u² + 2as"]
+    ].find(([pattern]) => pattern.test(q))?.[1];
+    if (intentFormula) return intentFormula;
+    const preferred=(/resistance|voltage|ohm/.test(q) && formulas.find(formula => /V\s*=\s*IR|R\s*=\s*V\/?I/i.test(formula)))
+      || (/power/.test(q) && formulas.find(formula => /P\s*=|power/i.test(formula)))
+      || (/capacit/.test(q) && formulas.find(formula => /C\s*=|capacit/i.test(formula)))
+      || (/v\s*=\s*u|first equation|velocity.*time/.test(q) && formulas.find(formula => /v\s*=\s*u\s*\+\s*at/i.test(formula)))
+      || (/frequency|time period/.test(q) && formulas.find(formula => /f\s*=|T\s*=|frequency/i.test(formula)));
+    return preferred || formulas[0] || extracted || "Use the governing definition and SI units for this topic.";
+  }
+
+  function tutorHints(query,entry,formula,sources=[]) {
+    const numerical=/(calculate|find|solve|numerical|determine|given)|\d/i.test(query);
+    if (numerical) return [
+      "Write the given quantities with SI units and circle exactly what must be found.",
+      `Connect those quantities using: ${formula}`,
+      "Substitute one value at a time, keep units visible, and check whether the final magnitude is physically reasonable."
+    ];
+    const localHint=sources[0]?.excerpt ? `Look for the key statement in the matched local page: ${sources[0].excerpt.slice(0,220)}${sources[0].excerpt.length>220?"…":""}` : "State the definition in one sentence, then identify its cause and observable effect.";
+    return [
+      localHint,
+      `Relate the idea to this standard relation or principle: ${formula}`,
+      `Test your understanding by explaining one real example of ${entry?.title || "the concept"} in your own words.`
+    ];
+  }
+
+  function practicePrompt(excerpt) {
+    const clean=String(excerpt || "").replace(/^…/,"").replace(/\s+/g," ").trim();
+    const withoutAnswer=clean.split(/\b(?:Ans(?:wer)?|Solution)\b\s*[:.\-]?/i)[0].trim();
+    const prompt=withoutAnswer || clean;
+    return `${prompt.slice(0,520)}${prompt.length>520?"…":""}`;
+  }
+
+  async function tutor({message,context={},history=[]} = {}) {
+    const query=String(message || "").trim();
+    const entry=findChapter(contextualQuery(query,history),context.className,context.chapter);
+    const result=await answer({message:query,context,history});
+    const sources=result.sources || await corpusSources(query,context,entry);
+    const resolvedTopic=result.chapter || entry?.title || sources[0]?.chapter || context.chapter || "Physics";
+    const resolvedEntry=findChapter(resolvedTopic,context.className,resolvedTopic);
+    const formula=primaryFormula(resolvedEntry,sources,query);
+    const hints=tutorHints(query,resolvedEntry,formula,sources);
+    const searchClass=context.searchClass || (/^Class (9|10|11|12)th$/.test(context.className || "") ? context.className : "Class 12th");
+    let practice=null;
+    try {
+      practice=await Corpus?.similarPractice?.({className:searchClass,chapter:resolvedTopic,mode:context.examMode || "All",excludeIds:sources.map(source => source.id)});
+    } catch {}
+    return {
+      kind:"tutor-card",
+      query,
+      topic:resolvedTopic,
+      concept:(resolvedEntry?.concepts || [])[0] || `Apply the verified local ${resolvedTopic} principle carefully.`,
+      formula,
+      hints,
+      solution:result.answer,
+      practice:practice ? {question:practicePrompt(practice.excerpt),chapter:practice.chapter,source:practice} : null,
+      sources,
+      source:result.source,
+      examMode:context.examMode || "All"
+    };
+  }
+
+  return {answer,tutor,getChapters,solveNumerical,isPhysicsQuery,detectSubject,knowledgeBase:KB};
 })();

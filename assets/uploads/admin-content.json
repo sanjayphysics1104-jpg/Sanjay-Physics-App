@@ -1402,6 +1402,45 @@
   ],
   "questionBanks": [
     {
+      "id": "b_1794833741447_ih6zw",
+      "className": "NEET / JEE",
+      "chapter": "Wave on a String, Circular Motion, Rigid Body Dynamics, Friction, Center of Mass",
+      "title": "DPP-23-Wave on a String, Circular Motion, Rigid Body Dynamics, Friction, Center of Mass",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1794833741447_ih6zw-DPP-23-Wave-on-a-String--Circular-Motion--Rigid-Body-Dynamics--Friction--Center-of-Mass.pdf",
+      "blobKey": "",
+      "fileName": "DPP-23-Wave on a String, Circular Motion, Rigid Body Dynamics, Friction, Center of Mass.pdf",
+      "fileSize": 274351,
+      "pages": 1,
+      "passwordHash": "61cb4b86c16f0a55cd8ae6deebe178705da7214876bbaa43002e600ccd1c8f98"
+    },
+    {
+      "id": "b_1794833660072_5c1w0",
+      "className": "NEET / JEE",
+      "chapter": "DCenter of Mass, Relative Motion, Wave on a String, Friction",
+      "title": "DPP-22-Center of Mass, Relative Motion, Wave on a String, Friction",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1794833660072_5c1w0-DPP-22-Center-of-Mass--Relative-Motion--Wave-on-a-String--Friction.pdf",
+      "blobKey": "",
+      "fileName": "DPP-22-Center of Mass, Relative Motion, Wave on a String, Friction.pdf",
+      "fileSize": 403605,
+      "pages": 1,
+      "passwordHash": "61cb4b86c16f0a55cd8ae6deebe178705da7214876bbaa43002e600ccd1c8f98"
+    },
+    {
+      "id": "b_1794833523946_l07z8",
+      "className": "NEET / JEE",
+      "chapter": "Center Of Mass. Wave on a String Friction",
+      "title": "DPP-24-Center Of Mass. Wave on a String Friction",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1794833523946_l07z8-DPP-24-Center-Of-Mass.-Wave-on-a-String-Friction.pdf",
+      "blobKey": "",
+      "fileName": "DPP-24-Center Of Mass. Wave on a String Friction.pdf",
+      "fileSize": 365323,
+      "pages": 1,
+      "passwordHash": "61cb4b86c16f0a55cd8ae6deebe178705da7214876bbaa43002e600ccd1c8f98"
+    },
+    {
       "id": "b_1794765220704_hvtpn",
       "className": "Class 11th",
       "chapter": "Friction",
