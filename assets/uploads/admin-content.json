@@ -1402,15 +1402,15 @@
   ],
   "questionBanks": [
     {
-      "id": "b_1794926713746_gdinc",
+      "id": "b_1794931538141_ldlbr",
       "className": "Class 12th",
-      "chapter": "Current Electricity",
+      "chapter": "DPP-1-Current electricity",
       "title": "DPP-1",
       "count": 25,
-      "url": "/assets/uploads/questionBanks/Class-12th/b_1794926713746_gdinc-DDP-1-Current-Electricity.pdf",
+      "url": "/assets/uploads/questionBanks/Class-12th/b_1794931538141_ldlbr-DPP-1-Current-electricity.pdf",
       "blobKey": "",
-      "fileName": "DDP-1-Current Electricity.pdf",
-      "fileSize": 292423,
+      "fileName": "DPP-1-Current electricity.pdf",
+      "fileSize": 288191,
       "pages": 1,
       "passwordHash": ""
     },
