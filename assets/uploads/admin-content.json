@@ -465,6 +465,62 @@
   ],
   "videos": [
     {
+      "id": "v_1795165922701_o1sv0",
+      "className": "Class 11th",
+      "chapter": "NEWTON'S LAWS OF MOTION PART-03",
+      "title": "NEWTON'S LAWS OF MOTION PART-03",
+      "url": "https://youtu.be/pOtDi93xjWQ?si=34Xm70UnsYr9i4Sc",
+      "duration": "New"
+    },
+    {
+      "id": "v_1795165836245_6nx24",
+      "className": "Class 11th",
+      "chapter": "NEWTON'S LAWS OF MOTION PART-02",
+      "title": "NEWTON'S LAWS OF MOTION PART-02",
+      "url": "https://youtu.be/6AVxx334P48?si=qRALMnr3Py0cqV8m",
+      "duration": "New"
+    },
+    {
+      "id": "v_1795165414606_f9j6n",
+      "className": "Class 9th",
+      "chapter": "NEWTON'S LAWS OF MOTION PART-02",
+      "title": "NEWTON'S LAWS OF MOTION PART-02",
+      "url": "https://youtu.be/6AVxx334P48?si=052mhpUnWiPVjqV_",
+      "duration": "New"
+    },
+    {
+      "id": "v_1795165356022_sazag",
+      "className": "Class 11th",
+      "chapter": "NEWTON'S LAWS OF MOTION PART-01 IIT JEE | NEET | NCERT",
+      "title": "NEWTON'S LAWS OF MOTION PART-01 IIT JEE | NEET | NCERT",
+      "url": "https://youtu.be/OPJ5NeQ_w2w?si=l5FWgmzmfx4e8lNC",
+      "duration": "New"
+    },
+    {
+      "id": "v_1795165167639_6t54c",
+      "className": "Class 11th",
+      "chapter": "kinematic lec-3",
+      "title": "kinematic lec-3",
+      "url": "https://youtu.be/viOmHxPJEV0?si=mwyJ97jfs_fiEZ1H",
+      "duration": "New"
+    },
+    {
+      "id": "v_1795165054303_8jhpf",
+      "className": "Class 11th",
+      "chapter": "kinematic lec -2",
+      "title": "kinematic lec -2",
+      "url": "https://youtu.be/BN21bfmtrmg?si=V3atNRSZVtGYVLsr",
+      "duration": "New"
+    },
+    {
+      "id": "v_1795164866871_d96tk",
+      "className": "Class 11th",
+      "chapter": "kinematic lec 1",
+      "title": "kinematic lec 1",
+      "url": "https://youtu.be/XLZpWTT7sog?si=XX_-RG3pZITZpcEX",
+      "duration": "New"
+    },
+    {
       "id": "v1",
       "className": "Class 9th",
       "chapter": "Motion",
@@ -503,22 +559,6 @@
       "title": "Electric Current and Ohm's Law",
       "url": "https://www.youtube.com/watch?v=mc979OhitAg",
       "duration": "28 min"
-    },
-    {
-      "id": "v6",
-      "className": "Class 11th",
-      "chapter": "Kinematics",
-      "title": "Motion in a Straight Line",
-      "url": "https://www.youtube.com/watch?v=ZM8ECpBuQYE",
-      "duration": "32 min"
-    },
-    {
-      "id": "v7",
-      "className": "Class 11th",
-      "chapter": "Thermodynamics",
-      "title": "Laws of Thermodynamics",
-      "url": "https://www.youtube.com/watch?v=NyOYW07-L5g",
-      "duration": "30 min"
     },
     {
       "id": "v8",
@@ -1401,6 +1441,136 @@
     }
   ],
   "questionBanks": [
+    {
+      "id": "b_1795164494815_kqz9q",
+      "className": "NEET / JEE",
+      "chapter": "DPP-4-JEE- RAY OPTICS",
+      "title": "DPP-4-JEE- RAY OPTICS",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164494815_kqz9q-DPP-4-JEE--RAY-OPTICS.pdf",
+      "blobKey": "",
+      "fileName": "DPP-4-JEE- RAY OPTICS.pdf",
+      "fileSize": 525202,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164459624_bqofr",
+      "className": "NEET / JEE",
+      "chapter": "DPP-3-JEE- RAY OPTICS",
+      "title": "DPP-3-JEE- RAY OPTICS",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164459624_bqofr-DPP-3-JEE--RAY-OPTICS.pdf",
+      "blobKey": "",
+      "fileName": "DPP-3-JEE- RAY OPTICS.pdf",
+      "fileSize": 506506,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164427736_aghg1",
+      "className": "NEET / JEE",
+      "chapter": "DPP-2-JEE- RAY OPTICS",
+      "title": "DPP-2-JEE- RAY OPTICS",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164427736_aghg1-DPP-2-JEE--RAY-OPTICS.pdf",
+      "blobKey": "",
+      "fileName": "DPP-2-JEE- RAY OPTICS.pdf",
+      "fileSize": 536947,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164396904_axae3",
+      "className": "NEET / JEE",
+      "chapter": "DPP-1-JEE- RAY OPTICS",
+      "title": "DPP-1-JEE- RAY OPTICS",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164396904_axae3-DPP-1-JEE--RAY-OPTICS.pdf",
+      "blobKey": "",
+      "fileName": "DPP-1-JEE- RAY OPTICS.pdf",
+      "fileSize": 465585,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164333144_imyij",
+      "className": "NEET / JEE",
+      "chapter": "DPP-4-JEE- ELECTROMAGNETIC INDUCTION",
+      "title": "DPP-4-JEE- ELECTROMAGNETIC INDUCTION",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164333144_imyij-DPP-4-JEE--ELECTROMAGNETIC-INDUCTION.pdf",
+      "blobKey": "",
+      "fileName": "DPP-4-JEE- ELECTROMAGNETIC INDUCTION.pdf",
+      "fileSize": 348861,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164294960_ex897",
+      "className": "NEET / JEE",
+      "chapter": "DPP-3-JEE- ELECTROMAGNETIC INDUCTION",
+      "title": "DPP-3-JEE- ELECTROMAGNETIC INDUCTION",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164294960_ex897-DPP-3-JEE--ELECTROMAGNETIC-INDUCTION.pdf",
+      "blobKey": "",
+      "fileName": "DPP-3-JEE- ELECTROMAGNETIC INDUCTION.pdf",
+      "fileSize": 366801,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164250568_hojld",
+      "className": "NEET / JEE",
+      "chapter": "DPP-2-JEE- ELECTROMAGNETIC INDUCTION",
+      "title": "DPP-2-JEE- ELECTROMAGNETIC INDUCTION",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164250568_hojld-DPP-2-JEE--ELECTROMAGNETIC-INDUCTION.pdf",
+      "blobKey": "",
+      "fileName": "DPP-2-JEE- ELECTROMAGNETIC INDUCTION.pdf",
+      "fileSize": 440881,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164164882_c9euc",
+      "className": "NEET / JEE",
+      "chapter": "DPP-1-JEE- ELECTROMAGNETIC INDUCTION",
+      "title": "DPP-1-JEE- ELECTROMAGNETIC INDUCTION",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164164882_c9euc-DPP-1-JEE--ELECTROMAGNETIC-INDUCTION.pdf",
+      "blobKey": "",
+      "fileName": "DPP-1-JEE- ELECTROMAGNETIC INDUCTION.pdf",
+      "fileSize": 357542,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164078194_0r1py",
+      "className": "NEET / JEE",
+      "chapter": "Dpp-2-JEE-MAGNETIC EFFECT OF CURRENT AND MAGNETIC FORCE",
+      "title": "Dpp-2-JEE-MAGNETIC EFFECT OF CURRENT AND MAGNETIC FORCE",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164078194_0r1py-DPP-2-JEE--ELECTROMAGNETIC-INDUCTION.pdf",
+      "blobKey": "",
+      "fileName": "DPP-2-JEE- ELECTROMAGNETIC INDUCTION.pdf",
+      "fileSize": 440881,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795164016565_o8i42",
+      "className": "NEET / JEE",
+      "chapter": "Dpp-1-JEE-MAGNETIC EFFECT OF CURRENT AND MAGNETIC FORCE",
+      "title": "Dpp-1-JEE-MAGNETIC EFFECT OF CURRENT AND MAGNETIC FORCE",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/NEET---JEE/b_1795164016565_o8i42-Dpp-1-JEE-MAGNETIC-EFFECT-OF-CURRENT-AND-MAGNETIC-FORCE.pdf",
+      "blobKey": "",
+      "fileName": "Dpp-1-JEE-MAGNETIC EFFECT OF CURRENT AND MAGNETIC FORCE.pdf",
+      "fileSize": 365509,
+      "pages": 1,
+      "passwordHash": ""
+    },
     {
       "id": "b_1795075267086_6f2lu",
       "className": "NEET / JEE",
