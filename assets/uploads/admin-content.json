@@ -1442,6 +1442,58 @@
   ],
   "questionBanks": [
     {
+      "id": "b_1795783541935_4ale2",
+      "className": "Class 12th",
+      "chapter": "DPP-02 - Electromagnetic Waves",
+      "title": "DPP-02 - Electromagnetic Waves",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/Class-12th/b_1795783541935_4ale2-DPP-02--Ectromagnetic-waves.pdf",
+      "blobKey": "",
+      "fileName": "DPP-02- Ectromagnetic-waves.pdf",
+      "fileSize": 10155355,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795783501183_h4ebx",
+      "className": "Class 12th",
+      "chapter": "DPP-01 - Electromagnetic Waves",
+      "title": "DPP-01 - Electromagnetic Waves",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/Class-12th/b_1795783501183_h4ebx-DPP-01---Electromagnetic-Waves.pdf",
+      "blobKey": "",
+      "fileName": "DPP-01 - Electromagnetic Waves.pdf",
+      "fileSize": 533395,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795783441304_b3bod",
+      "className": "Class 12th",
+      "chapter": "DPP 5 - Alternating Current (Made by Sanjay Singh)",
+      "title": "DPP 5 - Alternating Current (Made by Sanjay Singh)",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/Class-12th/b_1795783441304_b3bod-DPP-5---Alternating-Current--Made-by-Sanjay-Singh-.pdf",
+      "blobKey": "",
+      "fileName": "DPP 5 - Alternating Current (Made by Sanjay Singh).pdf",
+      "fileSize": 1221642,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
+      "id": "b_1795783398269_bx5gn",
+      "className": "Class 12th",
+      "chapter": "DPP 4 - Alternating Current",
+      "title": "DPP 4 - Alternating Current",
+      "count": 25,
+      "url": "/assets/uploads/questionBanks/Class-12th/b_1795783398269_bx5gn-DPP-4---Alternating-Current--Made-by-Sanjay-Singh-.pdf",
+      "blobKey": "",
+      "fileName": "DPP 4 - Alternating Current (Made by Sanjay Singh).pdf",
+      "fileSize": 1271451,
+      "pages": 1,
+      "passwordHash": ""
+    },
+    {
       "id": "b_1795616916817_pp9bt",
       "className": "Class 12th",
       "chapter": "DPP-03- ALTERNATING CURRENTS",
